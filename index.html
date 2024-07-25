@@ -5,17 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S-Index Search</title>
     <link rel="stylesheet" href="static/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>S-Index Search</h1>
-    <br>
-    <p>Use the search box below to find conferences S-Index. This data is generated based on various indices and
-        parameters.</p>
-    <input type="text" id="searchBox" placeholder="Search for a conference...">
-    <button id="searchButton">Search</button>
-    <ul id="results"></ul>
-    <div id="explanation">
+<div class="grid">
+    <div class="container left down" id="table"></div>
+    <div class="container left up">
+        <div id="buttons">
+            <a class="link-button" href="https://github.com/s-index-edu/s-index-edu.github.io/">Github</a>
+            <a class="link-button" href="survey.html">Survey</a>
+            <br>
+            <a class="link-button" href="matrix.html">Adjacency Matrix</a>
+            <br>
+            <a class="link-button" href="https://github.com/s-index-edu/s-index-edu.github.io/discussions/1">Github Discussion</a>
+            <br>
+            <a class="link-button" href="graph.html">S-Index Graph</a>
+        </div>
+    </div>
+    <div class="container right full">
         <h2>More about how S-Index is calculated:</h2>
         <ul>
             <li>
@@ -39,6 +46,15 @@
             </li>
         </ul>
     </div>
+    <div class="container center full" id="main">
+        <h1>S-Index Search</h1>
+        <br>
+        <p>Use the search box below to find conferences S-Index. This data is generated based on various indices and
+            parameters.</p>
+        <input type="text" id="searchBox" placeholder="Search for a conference...">
+        <button id="searchButton">Search</button>
+    </div>
+    <div class="container center down" id="results"></div>
 </div>
 <script src="static/js/scripts.js"></script>
 </body>
