@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Survey</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+<div id="survey">Loading...</div>
+</body>
+<script>
+    fetch("static/pages/Survey.md")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById("survey").innerHTML = marked.parse(data)
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+</script>
+</html>
