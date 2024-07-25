@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Survey</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="static/js/marked.min.js"></script>
 </head>
 
 <body>
 <div id="survey">Loading...</div>
 </body>
 <script>
-    fetch("static/pages/Survey.md")
+    fetch("pages/survey.md")
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
