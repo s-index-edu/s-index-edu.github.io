@@ -142,11 +142,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (graph) {
-            results.innerHTML = selectedBooks.map(conference => conference.booktitle).join(", ")
-                + `<br><br><canvas id="result-chart" style="width:100%;max-width:700px;height: 30vh"></canvas>` + defaultResults
+            results.innerHTML = `<canvas id="result-chart" style="width:100%;max-width:700px;height: 30vh"></canvas>` + defaultResults
             const datasets = [];
             selectedBooks.forEach(conference => {
                 datasets.push({
+                    label: conference.booktitle,
                     data: generateSIndices(conference),
                     borderColor: getColor(selectedBooks.indexOf(conference))
                 })
@@ -156,9 +156,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 data: {
                     datasets,
                     labels: range(max)
-                },
-                options: {
-                    legend: {display: false}
                 }
             });
         } else {
