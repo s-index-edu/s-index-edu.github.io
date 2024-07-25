@@ -13,7 +13,7 @@ This report summarizes the responses collected from a survey regarding conferenc
     - **Table:**
 
       | Response | Count |
-           |----------|-------|
+      |----------|-------|
       | Yes      | 23    |
       | No       | 2     |
       | This depends on how you define ranking. I assume it's the reputation of the conference | 1 |
@@ -40,9 +40,7 @@ This report summarizes the responses collected from a survey regarding conferenc
         - VLDB, SIGMOD, ICDE, PODS, CIKM
         - SIGMOD, VLDB, ICDE, SIGIR, CIKM
         - SIGMOD, VLDB, ICDE, EDBT, CIKM
-
-    - **Chart:**
-      ![Top-Tier Conferences](attachment:image.png)
+        
 
 3. **Importance of Diversity and Geographical Distribution**
     - **Question:** When evaluating a conference, how would you describe the importance given to factors like diversity of reviewers/program committee members and geographical distribution of authors?
@@ -69,15 +67,13 @@ This report summarizes the responses collected from a survey regarding conferenc
       | Very important | 1 |
       | Important | 1 |
 
-    - **Chart:**
-      ![Diversity and Geographical Distribution](attachment:image.png)
 
 4. **Conference Ranking Systems**
     - **Question:** Which conference ranking systems (e.g., CORE, Microsoft Academic, etc.) do you find most accurately capture a conference's quality and impact? Why?
     - **Responses:**
 
       | Response | Count |
-           |----------|-------|
+      |----------|-------|
       | None     | 4     |
       | Don’t know | 2 |
       | I don't follow the rankings closely; I think one's personal experience and word of mouth are more accurate. | 1 |
@@ -96,10 +92,7 @@ This report summarizes the responses collected from a survey regarding conferenc
       | CORE, but it’s not perfect. | 1 |
       | Google Scholar Metrics; it provides a broader perspective. | 1 |
       | I don't follow rankings closely; personal and peer opinions matter more to me. | 1 |
-
-    - **Chart:**
-      ![Conference Ranking Systems](attachment:image.png)
-
+    
 #### Detailed Response Analysis
 
 **1. Consideration of Conference Ranking:**
