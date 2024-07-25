@@ -1,9 +1,15 @@
-### Conference Survey Report
+- [Conference Survey Report](#conference-survey-report)
+    * [Overview](#overview)
+    * [Summary of Responses](#summary-of-responses)
+    * [Detailed Response Analysis](#detailed-response-analysis)
+    * [Conclusion](#conclusion)
 
-#### Overview
+# Conference Survey Report
+
+## Overview
 This report summarizes the responses collected from a survey regarding conference preferences, evaluations, and ranking systems within the Computer Science (CS) field. The survey consisted of multiple questions targeting different aspects of conference selection and perception among the respondents.
 
-#### Summary of Responses
+## Summary of Responses
 
 1. **Consideration of Conference Ranking**
     - **Question:** Do you consider the ranking of the conference when deciding where to submit your work?
@@ -93,7 +99,7 @@ This report summarizes the responses collected from a survey regarding conferenc
       | Google Scholar Metrics; it provides a broader perspective. | 1 |
       | I don't follow rankings closely; personal and peer opinions matter more to me. | 1 |
     
-#### Detailed Response Analysis
+## Detailed Response Analysis
 
 **1. Consideration of Conference Ranking:**
 The vast majority of respondents value conference rankings highly, indicating that ranking plays a significant role in their decision-making process for where to submit their work.
@@ -112,5 +118,5 @@ Opinions are varied, with a significant number of respondents recognizing the im
 **4. Conference Ranking Systems:**
 There is a general indifference or lack of knowledge about specific conference ranking systems. Many respondents do not rely on these systems to determine the quality and impact of conferences, preferring personal experience, peer opinions, and reputation within the community. Among those who do use ranking systems, CORE and Google Scholar Metrics are mentioned as relatively reliable, despite some reservations about their biases.
 
-#### Conclusion
+## Conclusion
 The survey responses provide valuable insights into the preferences and evaluation criteria of researchers in the CS field regarding conferences. The importance of conference ranking, the recognition of top-tier conferences in various subfields, and the varied opinions on diversity and ranking systems reflect the multifaceted considerations researchers take into account when selecting conferences for their submissions. This detailed report can help understand trends and preferences in the academic community, guiding future decisions on conference organization and ranking methodologies.
