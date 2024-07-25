@@ -47,7 +47,7 @@ This report summarizes the responses collected from a survey regarding conferenc
     - **Responses:**
 
       | Response | Count |
-           |----------|-------|
+      |----------|-------|
       | High     | 8     |
       | None     | 1     |
       | Not particularly important | 1 |
