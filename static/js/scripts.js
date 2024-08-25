@@ -1,6 +1,8 @@
 let selectedBooks = [];
 
 const colors = [
+    "blue", "green", "red", "yellow", "lightGreen", "orange", "lightBlue", "lightRed",
+    "black", "gray", "brown", "lightBrown", "darkBrown", "darkRed",
     "aqua", "azure", "beige", "bisque", "blanchedalmond", "chartreuse", "coral", "cornflowerblue", 
     "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkkhaki", "darkmagenta", 
     "darkolivegreen", "darkorange", "darkorchid", "darksalmon", "darkseagreen", "darkslateblue", 
