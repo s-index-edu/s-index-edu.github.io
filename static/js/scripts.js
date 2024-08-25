@@ -1,10 +1,21 @@
 let selectedBooks = [];
 
 const colors = [
-    "blue", "green", "red", "yellow",
-    "lightGreen", "orange", "lightBlue",
-    "lightRed", "black", "gray", "brown",
-    "lightBrown", "darkBrown", "darkRed"
+    "aqua", "azure", "beige", "bisque", "blanchedalmond", "chartreuse", "coral", "cornflowerblue", 
+    "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkkhaki", "darkmagenta", 
+    "darkolivegreen", "darkorange", "darkorchid", "darksalmon", "darkseagreen", "darkslateblue", 
+    "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray", "dodgerblue", 
+    "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold", "goldenrod", 
+    "honeydew", "hotpink", "indianred", "ivory", "khaki", "lavender", "lavenderblush", "lawngreen", 
+    "lemonchill", "lightcoral", "lightcyan", "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", 
+    "lightsalmon", "lightseagreen", "lightskyblue", "lightslategray", "lightsteelblue", "lime", "linen", 
+    "magenta", "maroon", "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", 
+    "mediumslateblue", "mediumspringgreen", "mediumturquoise", "mediumvioletred", "mintcream", "mistyrose", 
+    "moccasin", "navajowhite", "oldlace", "olivedrab", "orangered", "palegoldenrod", "palegreen", "paleturquoise", 
+    "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue", "purple", "rebeccapurple", 
+    "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell", "sienna", 
+    "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal", 
+    "thistle", "tomato", "turquoise", "violet", "wheat", "whitesmoke", "yellowgreen"
 ]
 
 function getColor(index) {
@@ -13,7 +24,9 @@ function getColor(index) {
 }
 
 let defaultMax = 20;
+let defaultMin = 1;
 let max = defaultMax;
+let min = defaultMin;
 let graph = true;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -63,18 +76,21 @@ document.addEventListener('DOMContentLoaded', function () {
         tableResultBtn.addEventListener("click", () => {
             graph = false;
             max = defaultMax;
+            min = defaultMin;
             displayResults()
         })
         const tenResultBtn = document.getElementById("10ResultBtn");
         tenResultBtn.addEventListener("click", () => {
             graph = true;
-            max = 10;
+            max = defaultMax;
+            min = 10;
             displayResults()
         })
         const allResultBtn = document.getElementById("AllResultBtn");
         allResultBtn.addEventListener("click", () => {
             graph = true;
             max = defaultMax;
+            min = defaultMin;
             displayResults()
         })
     }
@@ -155,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 type: "line",
                 data: {
                     datasets,
-                    labels: range(max)
+                    labels: range(min, max)
                 }
             });
         } else {
@@ -198,9 +214,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function range(max) {
+    function range(min, max) {
         const array = []
-        for (let i = 1; i <= max; i++)
+        for (let i = min; i <= max; i++)
             array.push(i)
         return array
     }
