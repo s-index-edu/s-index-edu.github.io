@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function generateSIndices(conference) {
         if (graph) {
             const data = [];
-            for (let i = 1; i <= 20; i++) {
+            for (let i = min; i <= max; i++) {
                 const index = conference[`S_${i}_index`];
                 if (!index) break;
                 data.push(Number(index))
