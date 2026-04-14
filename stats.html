@@ -288,7 +288,7 @@
                 });
         }
 
-        function fmtDate(d) { return d.toISOString().slice(0, 10) + "T00:00:00Z"; }
+        function fmtDate(d) { return d.toISOString().slice(0, 10); }
         function fmtNum(n) {
             if (n == null) return "—";
             return n.toLocaleString();
@@ -305,7 +305,7 @@
             var hits, total, browsers, systems, refs, locations;
             var delay = function () { return new Promise(function (r) { setTimeout(r, 300); }); };
 
-            api("/stats/hits" + qs + "&daily=1&limit=100", token)
+            api("/stats/hits" + qs + "&group=day&limit=100", token)
             .then(function (r) { hits = r; return delay(); })
             .then(function () { return api("/stats/total" + qs, token); })
             .then(function (r) { total = r; return delay(); })
