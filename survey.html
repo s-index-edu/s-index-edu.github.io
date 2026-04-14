@@ -2,27 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Survey</title>
-    <script src="static/js/marked.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey — S-Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/styles.css">
+    <script src="static/js/theme.js"></script>
+    <script src="static/js/marked.min.js"></script>
 </head>
-
 <body>
-<div id="survey" class="container">Loading...</div>
-</body>
-<script>
-    fetch("pages/survey.md")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">S-Index</a>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Search</a>
+                <a href="graph.html" class="nav-link">Graph</a>
+                <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
+                <a href="survey.html" class="nav-link active">Survey</a>
+                <a href="stats.html" class="nav-link">Statistics</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
+            </nav>
+            <div class="theme-wrap">
+                <label for="themeSelect" class="sr-only">Theme</label>
+                <select id="themeSelect" class="theme-select" aria-label="Choose theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <button type="button" class="menu-btn" aria-label="Open menu" hidden></button>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div id="survey" class="container">Loading…</div>
+        <!-- Replace YOUR_GOOGLE_FORM_ID with your form's ID from Google Forms → Send → Embed. For width/height use 640 and 800. -->
+        <section class="survey-form-wrap" aria-label="Survey form">
+            <h2 class="form-title">Fill out the survey</h2>
+            <iframe
+                class="google-form-embed"
+                src="https://docs.google.com/forms/d/e/1FAIpQLSeenm4nU3HycapflrqY_Uo62bs1ADXtjXhIeQp_CAFf0v8_NA/viewform?embedded=true"
+                frameborder="0"
+                marginheight="0"
+                marginwidth="0"
+                title="Conference survey form">Loading…</iframe>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>S-Index — Conference publication metrics. <a href="https://github.com/s-index-edu/s-index-edu.github.io">Source on GitHub</a>.</p>
+        </div>
+    </footer>
+
+    <script>
+        fetch("pages/survey.md")
+            .then(function (response) {
+                if (!response.ok) throw new Error("Network response was not ok: " + response.statusText);
+                return response.text();
+            })
+            .then(function (data) {
+                var el = document.getElementById("survey");
+                if (el && typeof marked !== "undefined") el.innerHTML = marked.parse(data);
+            })
+            .catch(function (err) { console.error(err); });
+    </script>
+    <script>
+        (function () {
+            var menuBtn = document.querySelector(".menu-btn");
+            var nav = document.querySelector(".nav");
+            if (menuBtn && nav) {
+                menuBtn.removeAttribute("hidden");
+                menuBtn.addEventListener("click", function () {
+                    nav.classList.toggle("is-open");
+                    menuBtn.setAttribute("aria-expanded", nav.classList.contains("is-open"));
+                });
             }
-            return response.text();
-        })
-        .then(data => {
-            document.getElementById("survey").innerHTML = marked.parse(data)
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
-        });
-</script>
+        })();
+    </script>
+    <script data-goatcounter="https://s-index.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+</body>
 </html>

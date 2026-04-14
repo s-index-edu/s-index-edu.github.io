@@ -2,26 +2,134 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Adjacency Matrix</title>
-    <script src="static/js/marked.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjacency Matrix — S-Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/styles.css">
+    <script src="static/js/theme.js"></script>
+    <script src="static/js/marked.min.js"></script>
 </head>
 <body>
-<div id="matrix" class="container">Loading...</div>
-</body>
-<script>
-    fetch("pages/adjacencymartix.md")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">S-Index</a>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Search</a>
+                <a href="graph.html" class="nav-link">Graph</a>
+                <a href="matrix.html" class="nav-link active">Adjacency Matrix</a>
+                <a href="survey.html" class="nav-link">Survey</a>
+                <a href="stats.html" class="nav-link">Statistics</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
+            </nav>
+            <div class="theme-wrap">
+                <label for="themeSelect" class="sr-only">Theme</label>
+                <select id="themeSelect" class="theme-select" aria-label="Choose theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <button type="button" class="menu-btn" aria-label="Open menu" hidden></button>
+        </div>
+    </header>
+
+    <main class="page-content page-content-wide">
+        <div class="page-toolbar">
+            <h1 class="page-heading">Adjacency Matrix</h1>
+            <div class="page-toolbar-controls">
+                <label for="matrixYearSelect" class="toolbar-label">Year</label>
+                <select id="matrixYearSelect" class="year-select" aria-label="Select matrix year">
+                    <option value="">Loading…</option>
+                </select>
+            </div>
+        </div>
+        <div id="matrix" class="container">Loading…</div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>S-Index — Conference publication metrics. <a href="https://github.com/s-index-edu/s-index-edu.github.io">Source on GitHub</a>.</p>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var CONF_URL = "static/config/datasets.json";
+            var matrixEl = document.getElementById("matrix");
+
+            function loadConfig(cb) {
+                fetch(CONF_URL)
+                    .then(function (r) { if (!r.ok) throw new Error("Config load failed"); return r.json(); })
+                    .then(cb)
+                    .catch(function (err) {
+                        console.error(err);
+                        var sel = document.getElementById("matrixYearSelect");
+                        if (sel) sel.innerHTML = '<option value="">No data</option>';
+                        if (matrixEl) matrixEl.textContent = "Failed to load configuration.";
+                    });
             }
-            return response.text();
-        })
-        .then(data => {
-            document.getElementById("matrix").innerHTML = marked.parse(data)
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
-        });
-</script>
+
+            function loadMatrix(path) {
+                if (!matrixEl) return;
+                matrixEl.innerHTML = "Loading…";
+                fetch(path)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("Failed to load: " + path);
+                        return r.text();
+                    })
+                    .then(function (md) {
+                        matrixEl.innerHTML = (typeof marked !== "undefined") ? marked.parse(md) : "<pre>" + md + "</pre>";
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        matrixEl.textContent = "Failed to load matrix data.";
+                    });
+            }
+
+            loadConfig(function (config) {
+                var datasets = config.datasets || [];
+                var defaultYear = config.defaultYear != null ? String(config.defaultYear) : null;
+                var sel = document.getElementById("matrixYearSelect");
+                sel.innerHTML = "";
+
+                var validDatasets = datasets.filter(function (d) { return d.matrix; });
+                validDatasets.forEach(function (d) {
+                    var opt = document.createElement("option");
+                    opt.value = d.matrix;
+                    opt.textContent = d.year;
+                    if (String(d.year) === defaultYear) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+
+                if (!sel.options.length) {
+                    sel.innerHTML = '<option value="">No matrix configured</option>';
+                    if (matrixEl) matrixEl.textContent = "No matrix data available for any year.";
+                    return;
+                }
+                if (!sel.value) sel.selectedIndex = 0;
+                loadMatrix(sel.value);
+
+                sel.addEventListener("change", function () {
+                    if (sel.value) loadMatrix(sel.value);
+                });
+            });
+
+            // Mobile nav
+            var menuBtn = document.querySelector(".menu-btn");
+            var nav = document.querySelector(".nav");
+            if (menuBtn && nav) {
+                menuBtn.removeAttribute("hidden");
+                menuBtn.addEventListener("click", function () {
+                    nav.classList.toggle("is-open");
+                    menuBtn.setAttribute("aria-expanded", nav.classList.contains("is-open"));
+                });
+            }
+        })();
+    </script>
+    <script data-goatcounter="https://s-index.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+</body>
 </html>

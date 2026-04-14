@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Statistics — S-Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/styles.css">
+    <script src="static/js/theme.js"></script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">S-Index</a>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Search</a>
+                <a href="graph.html" class="nav-link">Graph</a>
+                <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
+                <a href="survey.html" class="nav-link">Survey</a>
+                <a href="stats.html" class="nav-link active">Statistics</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/s-index-edu/s-index-edu.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
+            </nav>
+            <div class="theme-wrap">
+                <label for="themeSelect" class="sr-only">Theme</label>
+                <select id="themeSelect" class="theme-select" aria-label="Choose theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <button type="button" class="menu-btn" aria-label="Open menu" hidden></button>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="panel stats-page-panel">
+            <div class="stats-page-header">
+                <h1 class="page-heading">Site Statistics</h1>
+                <p id="statsLiveIndicator" class="stats-live-dot" title="Live visitor tracking active" hidden>
+                    <span class="dot"></span> Live
+                </p>
+            </div>
+
+            <div class="stats-cards" id="statsCards">
+                <div class="stat-card">
+                    <span class="stat-card-value" id="statOnline">—</span>
+                    <span class="stat-card-label">Online now</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card-value" id="statToday">—</span>
+                    <span class="stat-card-label">Today</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card-value" id="statWeek">—</span>
+                    <span class="stat-card-label">This week</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card-value" id="statMonth">—</span>
+                    <span class="stat-card-label">This month</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card-value" id="statTotal">—</span>
+                    <span class="stat-card-label">All time</span>
+                </div>
+            </div>
+
+            <div class="stats-setup-notice" id="statsSetupNotice">
+                <h2>Set up analytics</h2>
+                <p>
+                    This site uses <strong>GoatCounter</strong> — a free, open-source, cookie-free analytics service.
+                    Follow these steps to activate statistics:
+                </p>
+                <ol>
+                    <li>Create a free account at <a href="https://www.goatcounter.com" target="_blank" rel="noopener">goatcounter.com</a>.</li>
+                    <li>Your site code will be something like <code>your-site-name</code> (gives you <code>your-site-name.goatcounter.com</code>).</li>
+                    <li>
+                        In every HTML page, add this snippet just before <code>&lt;/body&gt;</code>:
+                        <pre class="code-block"><code>&lt;script data-goatcounter="https://YOUR-CODE.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"&gt;&lt;/script&gt;</code></pre>
+                    </li>
+                    <li>
+                        To enable the statistics on this page, open <code>stats.html</code> and set the
+                        <code>GOATCOUNTER_CODE</code> constant at the top of the page script to your GoatCounter site code.
+                    </li>
+                    <li>
+                        In your GoatCounter settings, enable <strong>"Allow public access to stats"</strong>
+                        so the stats dashboard can be embedded here.
+                    </li>
+                </ol>
+                <p class="notice-note">
+                    GoatCounter does not collect personal data or use cookies, so no cookie consent banner is required.
+                    It is GDPR, CCPA, and PECR compliant.
+                </p>
+            </div>
+
+            <div class="stats-dashboard" id="statsDashboard" hidden>
+                <h2>Full dashboard</h2>
+                <p>
+                    Open the full GoatCounter dashboard in a new tab:
+                    <a id="statsDashboardLink" href="#" target="_blank" rel="noopener">Open dashboard</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>S-Index — Conference publication metrics. <a href="https://github.com/s-index-edu/s-index-edu.github.io">Source on GitHub</a>.</p>
+        </div>
+    </footer>
+
+    <script>
+        var GOATCOUNTER_CODE = "s-index";
+    </script>
+
+    <script>
+        (function () {
+            if (!GOATCOUNTER_CODE) return;
+
+            var notice = document.getElementById("statsSetupNotice");
+            var dashboard = document.getElementById("statsDashboard");
+            var liveIndicator = document.getElementById("statsLiveIndicator");
+            var statsDashboardLink = document.getElementById("statsDashboardLink");
+            var BASE = "https://" + GOATCOUNTER_CODE + ".goatcounter.com";
+
+            // Hide setup notice, show live indicator + dashboard
+            if (notice) notice.hidden = true;
+            if (dashboard) dashboard.hidden = false;
+            if (liveIndicator) liveIndicator.hidden = false;
+
+            if (statsDashboardLink) statsDashboardLink.href = BASE;
+
+            // Fetch stats via GoatCounter public API (requires "Allow public access to stats")
+            function fmt(n) {
+                if (n == null) return "—";
+                if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+                if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+                return String(n);
+            }
+
+            function setVal(id, n) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = fmt(n);
+            }
+
+            function fetchHits(start, end, targetId) {
+                return fetch(BASE + "/api/v0/stats/hits?start=" + start + "&end=" + end)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("Stats API unavailable: " + r.status);
+                        return r.json();
+                    })
+                    .then(function (d) {
+                        var total = 0;
+                        (d.hits || []).forEach(function (h) { total += h.count || 0; });
+                        setVal(targetId, total);
+                        return true;
+                    });
+            }
+
+            function fetchStats() {
+                var now = new Date();
+                var today = now.toISOString().slice(0, 10);
+                var weekAgo = new Date(now - 7 * 86400000).toISOString().slice(0, 10);
+                var monthAgo = new Date(now - 30 * 86400000).toISOString().slice(0, 10);
+
+                return Promise.all([
+                    fetchHits(today, today, "statToday"),
+                    fetchHits(weekAgo, today, "statWeek"),
+                    fetchHits(monthAgo, today, "statMonth"),
+                    fetchHits("2000-01-01", today, "statTotal")
+                ]);
+            }
+
+            setVal("statOnline", "N/A");
+            fetchStats().catch(function () {
+                if (notice) notice.hidden = false;
+                if (dashboard) dashboard.hidden = true;
+                if (liveIndicator) liveIndicator.hidden = true;
+            });
+        })();
+
+        // Mobile nav
+        (function () {
+            var menuBtn = document.querySelector(".menu-btn");
+            var nav = document.querySelector(".nav");
+            if (menuBtn && nav) {
+                menuBtn.removeAttribute("hidden");
+                menuBtn.addEventListener("click", function () {
+                    nav.classList.toggle("is-open");
+                    menuBtn.setAttribute("aria-expanded", nav.classList.contains("is-open"));
+                });
+            }
+        })();
+    </script>
+
+    <script data-goatcounter="https://s-index.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

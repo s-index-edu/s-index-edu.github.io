@@ -1,0 +1,12 @@
+{
+  "_comment": "To add a new year: add an entry to 'datasets'. Provide year, sindex path, graph file (graph-YYYY.html), and matrix markdown path. Set defaultYear as desired.",
+  "defaultYear": 2023,
+  "datasets": [
+    {
+      "year": 2023,
+      "sindex": "static/dataset/s-indices2023.json",
+      "graph": "graph-2023.html",
+      "matrix": "pages/adjacencymatrix-2023.md"
+    }
+  ]
+}
