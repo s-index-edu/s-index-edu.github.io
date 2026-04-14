@@ -301,20 +301,23 @@
             var start = new Date(end - days * 86400000);
             var qs = "?start=" + fmtDate(start) + "&end=" + fmtDate(end);
 
-            Promise.all([
-                api("/stats/hits" + qs + "&daily=1&limit=100", token),
-                api("/stats/total" + qs, token),
-                api("/stats/browsers" + qs + "&limit=8", token),
-                api("/stats/systems" + qs + "&limit=8", token),
-                api("/stats/toprefs" + qs + "&limit=8", token),
-                api("/stats/locations" + qs + "&limit=8", token)
-            ]).then(function (results) {
-                var hits = results[0];
-                var total = results[1];
-                var browsers = results[2];
-                var systems = results[3];
-                var refs = results[4];
-                var locations = results[5];
+            // Sequential fetches to respect GoatCounter's 4 req/s rate limit
+            var hits, total, browsers, systems, refs, locations;
+            var delay = function () { return new Promise(function (r) { setTimeout(r, 300); }); };
+
+            api("/stats/hits" + qs + "&daily=1&limit=100", token)
+            .then(function (r) { hits = r; return delay(); })
+            .then(function () { return api("/stats/total" + qs, token); })
+            .then(function (r) { total = r; return delay(); })
+            .then(function () { return api("/stats/browsers" + qs + "&limit=8", token); })
+            .then(function (r) { browsers = r; return delay(); })
+            .then(function () { return api("/stats/systems" + qs + "&limit=8", token); })
+            .then(function (r) { systems = r; return delay(); })
+            .then(function () { return api("/stats/toprefs" + qs + "&limit=8", token); })
+            .then(function (r) { refs = r; return delay(); })
+            .then(function () { return api("/stats/locations" + qs + "&limit=8", token); })
+            .then(function (r) { locations = r; })
+            .then(function () {
 
                 statusEl.hidden = true;
                 contentEl.hidden = false;
