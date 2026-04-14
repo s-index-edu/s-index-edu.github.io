@@ -9,6 +9,161 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/styles.css">
     <script src="static/js/theme.js"></script>
+    <style>
+        /* ── Stats-specific styles ── */
+        .stats-token-bar {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .stats-token-bar input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border, #444);
+            background: var(--bg-card, #1e1e2e);
+            color: var(--text, #e0e0e0);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .stats-token-bar input[type="text"]::placeholder {
+            color: var(--text-muted, #888);
+        }
+        .stats-token-bar button,
+        .stats-token-bar select {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border, #444);
+            background: var(--accent, #7c5cbf);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .stats-token-bar select {
+            background: var(--bg-card, #1e1e2e);
+            color: var(--text, #e0e0e0);
+        }
+        .stats-token-bar button:hover { opacity: 0.9; }
+
+        .stats-wide-panel {
+            max-width: 100%;
+            width: 100%;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Summary cards */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background: var(--bg-card, #1e1e2e);
+            border: 1px solid var(--border, #333);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .summary-card .val {
+            display: block;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent, #7c5cbf);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .summary-card .lbl {
+            display: block;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            color: var(--text-muted, #999);
+        }
+
+        /* Chart area */
+        .chart-section { margin-bottom: 2rem; }
+        .chart-section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        .chart-container canvas { width: 100% !important; }
+
+        /* Tables */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stats-table-wrap h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .stats-table th, .stats-table td {
+            text-align: left;
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid var(--border, #333);
+        }
+        .stats-table th {
+            font-weight: 600;
+            color: var(--text-muted, #999);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .stats-table td:last-child,
+        .stats-table th:last-child {
+            text-align: right;
+        }
+        .bar-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .mini-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--accent, #7c5cbf);
+            flex-shrink: 0;
+        }
+
+        /* Pages table (full width) */
+        .pages-section { margin-bottom: 2rem; }
+        .pages-section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Status messages */
+        .stats-status {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted, #999);
+            font-size: 0.95rem;
+        }
+        .stats-error { color: #e06060; }
+
+        /* Hide sections until loaded */
+        .stats-content[hidden] { display: none; }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -36,29 +191,46 @@
     </header>
 
     <main class="page-content">
-        <div class="panel stats-page-panel">
+        <div class="panel stats-wide-panel">
             <h1 class="page-heading">Site Statistics</h1>
 
-            <div class="stats-dashboard" id="statsDashboard">
-                <iframe
-                    id="gcFrame"
-                    src="https://s-index.goatcounter.com"
-                    title="GoatCounter dashboard"
-                    style="width: 100%; min-height: calc(100vh - 160px); border: none; border-radius: 8px; background: #fff;"
-                    loading="lazy"
-                ></iframe>
-                <p style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.7;">
-                    GoatCounter uses its own light theme inside the iframe.
-                    <a href="https://s-index.goatcounter.com" target="_blank" rel="noopener">Open full dashboard in a new tab ↗</a>
-                </p>
+            <div class="stats-token-bar">
+                <input type="text" id="gcToken" placeholder="Paste your GoatCounter API token here" autocomplete="off" spellcheck="false">
+                <select id="gcRange" aria-label="Date range">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+                <button type="button" id="gcLoad">Load Stats</button>
             </div>
 
-            <noscript>
-                <p>
-                    JavaScript is disabled. You can view the statistics directly at
-                    <a href="https://s-index.goatcounter.com">s-index.goatcounter.com</a>.
-                </p>
-            </noscript>
+            <div id="statsStatus" class="stats-status">Enter your GoatCounter API token above and click <strong>Load Stats</strong>.</div>
+
+            <div id="statsContent" class="stats-content" hidden>
+                <!-- Summary cards -->
+                <div class="stats-summary" id="summaryCards"></div>
+
+                <!-- Pageviews chart -->
+                <div class="chart-section">
+                    <h2>Visitors over time</h2>
+                    <div class="chart-container">
+                        <canvas id="hitsChart" height="260"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top pages -->
+                <div class="pages-section">
+                    <h2>Top Pages</h2>
+                    <table class="stats-table" id="pagesTable">
+                        <thead><tr><th>Path</th><th>Title</th><th>Visitors</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Breakdown grids -->
+                <div class="stats-grid" id="breakdownGrid"></div>
+            </div>
         </div>
     </main>
 
@@ -68,19 +240,243 @@
         </div>
     </footer>
 
+    <!-- Chart.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
     <script>
-        // Mobile nav
-        (function () {
-            var menuBtn = document.querySelector(".menu-btn");
-            var nav = document.querySelector(".nav");
-            if (menuBtn && nav) {
-                menuBtn.removeAttribute("hidden");
-                menuBtn.addEventListener("click", function () {
-                    nav.classList.toggle("is-open");
-                    menuBtn.setAttribute("aria-expanded", nav.classList.contains("is-open"));
+    var GOATCOUNTER_CODE = "s-index";
+
+    (function () {
+        var BASE = "https://" + GOATCOUNTER_CODE + ".goatcounter.com/api/v0";
+        var tokenInput = document.getElementById("gcToken");
+        var rangeSelect = document.getElementById("gcRange");
+        var loadBtn = document.getElementById("gcLoad");
+        var statusEl = document.getElementById("statsStatus");
+        var contentEl = document.getElementById("statsContent");
+        var hitsChart = null;
+
+        // Persist token in sessionStorage (not across sessions for security)
+        var saved = sessionStorage.getItem("gc_token");
+        if (saved) tokenInput.value = saved;
+
+        loadBtn.addEventListener("click", function () {
+            var token = tokenInput.value.trim();
+            if (!token) { showStatus("Please enter an API token.", true); return; }
+            sessionStorage.setItem("gc_token", token);
+            loadDashboard(token);
+        });
+
+        // Auto-load if token present
+        if (tokenInput.value.trim()) loadBtn.click();
+
+        function showStatus(msg, isError) {
+            statusEl.innerHTML = msg;
+            statusEl.className = "stats-status" + (isError ? " stats-error" : "");
+            statusEl.hidden = false;
+            contentEl.hidden = true;
+        }
+
+        function headers(token) {
+            return { "Content-Type": "application/json", "Authorization": "Bearer " + token };
+        }
+
+        function api(path, token) {
+            return fetch(BASE + path, { headers: headers(token) })
+                .then(function (r) {
+                    if (!r.ok) throw new Error("API " + r.status + " on " + path);
+                    return r.json();
+                });
+        }
+
+        function fmtDate(d) { return d.toISOString().slice(0, 10) + "T00:00:00Z"; }
+        function fmtNum(n) {
+            if (n == null) return "—";
+            return n.toLocaleString();
+        }
+
+        function loadDashboard(token) {
+            showStatus("Loading…", false);
+            var days = parseInt(rangeSelect.value, 10);
+            var end = new Date();
+            var start = new Date(end - days * 86400000);
+            var qs = "?start=" + fmtDate(start) + "&end=" + fmtDate(end);
+
+            Promise.all([
+                api("/stats/hits" + qs + "&daily=1&limit=100", token),
+                api("/stats/total" + qs, token),
+                api("/stats/browsers" + qs + "&limit=8", token),
+                api("/stats/systems" + qs + "&limit=8", token),
+                api("/stats/toprefs" + qs + "&limit=8", token),
+                api("/stats/locations" + qs + "&limit=8", token)
+            ]).then(function (results) {
+                var hits = results[0];
+                var total = results[1];
+                var browsers = results[2];
+                var systems = results[3];
+                var refs = results[4];
+                var locations = results[5];
+
+                statusEl.hidden = true;
+                contentEl.hidden = false;
+
+                renderSummary(total, hits);
+                renderChart(hits);
+                renderPages(hits);
+                renderBreakdowns([
+                    { title: "Top Referrers", data: refs },
+                    { title: "Browsers", data: browsers },
+                    { title: "Operating Systems", data: systems },
+                    { title: "Locations", data: locations }
+                ]);
+            }).catch(function (err) {
+                showStatus("Error: " + err.message + ". Check your token and try again.", true);
+            });
+        }
+
+        function renderSummary(total, hits) {
+            var el = document.getElementById("summaryCards");
+            var totalVisitors = total.total || 0;
+            var totalEvents = total.total_events || 0;
+            var pageCount = (hits.hits || []).length;
+
+            // Compute today's visitors from the stats array
+            var todayStr = new Date().toISOString().slice(0, 10);
+            var todayCount = 0;
+            if (total.stats) {
+                total.stats.forEach(function (s) {
+                    if (s.day === todayStr) todayCount = s.daily || 0;
                 });
             }
-        })();
+
+            var cards = [
+                { val: fmtNum(totalVisitors), lbl: "Total visitors" },
+                { val: fmtNum(todayCount), lbl: "Today" },
+                { val: fmtNum(totalEvents), lbl: "Events" },
+                { val: fmtNum(pageCount), lbl: "Tracked pages" }
+            ];
+
+            el.innerHTML = cards.map(function (c) {
+                return '<div class="summary-card"><span class="val">' + c.val + '</span><span class="lbl">' + c.lbl + '</span></div>';
+            }).join("");
+        }
+
+        function renderChart(hits) {
+            var labels = [];
+            var data = [];
+
+            // Aggregate daily visitors from all paths
+            var dayMap = {};
+            (hits.hits || []).forEach(function (h) {
+                (h.stats || []).forEach(function (s) {
+                    var d = s.day;
+                    dayMap[d] = (dayMap[d] || 0) + (s.daily || 0);
+                });
+            });
+
+            var days = Object.keys(dayMap).sort();
+            days.forEach(function (d) {
+                labels.push(d);
+                data.push(dayMap[d]);
+            });
+
+            var ctx = document.getElementById("hitsChart").getContext("2d");
+
+            // Detect theme
+            var cs = getComputedStyle(document.documentElement);
+            var accent = cs.getPropertyValue("--accent").trim() || "#7c5cbf";
+            var textColor = cs.getPropertyValue("--text").trim() || "#ccc";
+            var gridColor = cs.getPropertyValue("--border").trim() || "#333";
+
+            if (hitsChart) hitsChart.destroy();
+            hitsChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Visitors",
+                        data: data,
+                        backgroundColor: accent + "99",
+                        borderColor: accent,
+                        borderWidth: 1,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#222",
+                            titleColor: "#fff",
+                            bodyColor: "#ccc",
+                            cornerRadius: 6
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: textColor,
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 15,
+                                callback: function (val, i) {
+                                    var l = labels[i];
+                                    return l ? l.slice(5) : "";  // MM-DD
+                                }
+                            },
+                            grid: { color: gridColor + "44" }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: textColor, precision: 0 },
+                            grid: { color: gridColor + "44" }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPages(hits) {
+            var tbody = document.querySelector("#pagesTable tbody");
+            var rows = (hits.hits || []).sort(function (a, b) { return (b.count || 0) - (a.count || 0); });
+            tbody.innerHTML = rows.map(function (h) {
+                return '<tr><td><code>' + esc(h.path) + '</code></td><td>' + esc(h.title || "") + '</td><td>' + fmtNum(h.count) + '</td></tr>';
+            }).join("");
+        }
+
+        function renderBreakdowns(sections) {
+            var grid = document.getElementById("breakdownGrid");
+            grid.innerHTML = sections.map(function (sec) {
+                var items = (sec.data.stats || []);
+                var maxCount = items.reduce(function (m, s) { return Math.max(m, s.count || 0); }, 1);
+                var rows = items.map(function (s) {
+                    var pct = Math.round(((s.count || 0) / maxCount) * 100);
+                    return '<tr><td><div class="bar-cell"><span class="mini-bar" style="width:' + pct + 'px"></span>' + esc(s.name) + '</div></td><td>' + fmtNum(s.count) + '</td></tr>';
+                }).join("");
+                return '<div class="stats-table-wrap"><h3>' + esc(sec.title) + '</h3><table class="stats-table"><thead><tr><th>Name</th><th>Visitors</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+            }).join("");
+        }
+
+        function esc(s) {
+            var d = document.createElement("div");
+            d.textContent = s;
+            return d.innerHTML;
+        }
+    })();
+
+    // Mobile nav
+    (function () {
+        var menuBtn = document.querySelector(".menu-btn");
+        var nav = document.querySelector(".nav");
+        if (menuBtn && nav) {
+            menuBtn.removeAttribute("hidden");
+            menuBtn.addEventListener("click", function () {
+                nav.classList.toggle("is-open");
+                menuBtn.setAttribute("aria-expanded", nav.classList.contains("is-open"));
+            });
+        }
+    })();
     </script>
 
     <script data-goatcounter="https://s-index.goatcounter.com/count"
