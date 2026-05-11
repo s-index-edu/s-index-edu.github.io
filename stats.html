@@ -9,165 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/css/styles.css">
     <script src="static/js/theme.js"></script>
-    <style>
-        /* ── Stats-specific styles ── */
-        .stats-token-bar {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-        .stats-token-bar input[type="text"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            border: 1px solid var(--border, #444);
-            background: var(--bg-card, #1e1e2e);
-            color: var(--text, #e0e0e0);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-        }
-        .stats-token-bar input[type="text"]::placeholder {
-            color: var(--text-muted, #888);
-        }
-        .stats-token-bar button,
-        .stats-token-bar select {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--border, #444);
-            background: var(--accent, #7c5cbf);
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .stats-token-bar select {
-            background: var(--bg-card, #1e1e2e);
-            color: var(--text, #e0e0e0);
-        }
-        .stats-token-bar button:hover { opacity: 0.9; }
-
-        .stats-wide-panel {
-            max-width: 100%;
-            width: 100%;
-            padding: 2rem;
-            box-sizing: border-box;
-        }
-
-        /* Summary cards */
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .summary-card {
-            background: var(--bg-card, #1e1e2e);
-            border: 1px solid var(--border, #333);
-            border-radius: 8px;
-            padding: 1rem 1.25rem;
-            text-align: center;
-        }
-        .summary-card .val {
-            display: block;
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--accent, #7c5cbf);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .summary-card .lbl {
-            display: block;
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
-            color: var(--text-muted, #999);
-        }
-
-        /* Chart area */
-        .chart-section { margin-bottom: 2rem; }
-        .chart-section h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-        .chart-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-        .chart-container canvas { width: 100% !important; }
-
-        /* Tables */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .stats-table-wrap h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        .stats-table th, .stats-table td {
-            text-align: left;
-            padding: 0.4rem 0.6rem;
-            border-bottom: 1px solid var(--border, #333);
-        }
-        .stats-table th {
-            font-weight: 600;
-            color: var(--text-muted, #999);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-        .stats-table td:last-child,
-        .stats-table th:last-child {
-            text-align: right;
-        }
-        .bar-cell {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .mini-bar {
-            height: 6px;
-            border-radius: 3px;
-            background: var(--accent, #7c5cbf);
-            flex-shrink: 0;
-        }
-
-        /* Pages table (full width) */
-        .pages-section { margin-bottom: 2rem; }
-        .pages-section h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-
-        /* Status messages */
-        .stats-status {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-muted, #999);
-            font-size: 0.95rem;
-        }
-        .stats-error { color: #e06060; }
-
-        /* Hide sections until loaded */
-        .stats-content[hidden] { display: none; }
-    </style>
 </head>
 <body>
     <header class="site-header">
         <div class="header-inner">
+            <a href="#main" class="skip-link">Skip to main content</a>
             <a href="index.html" class="logo">S-Index</a>
             <nav class="nav">
                 <a href="index.html" class="nav-link">Search</a>
@@ -175,8 +21,6 @@
                 <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
                 <a href="survey.html" class="nav-link">Survey</a>
                 <a href="stats.html" class="nav-link active">Statistics</a>
-                <a href="https://github.com/anon/anon.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
-                <a href="https://github.com/anon/anon.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
             </nav>
             <div class="theme-wrap">
                 <label for="themeSelect" class="sr-only">Theme</label>
@@ -190,11 +34,13 @@
         </div>
     </header>
 
-    <main class="page-content">
+    <main id="main" class="page-content">
+        <div id="statsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         <div class="panel stats-wide-panel">
             <h1 class="page-heading">Site Statistics</h1>
 
             <div class="stats-token-bar">
+                <label for="gcToken" class="sr-only">GoatCounter API token</label>
                 <input type="text" id="gcToken" placeholder="Paste your GoatCounter API token here" autocomplete="off" spellcheck="false">
                 <select id="gcRange" aria-label="Date range">
                     <option value="7">Last 7 days</option>
@@ -205,7 +51,7 @@
                 <button type="button" id="gcLoad">Load Stats</button>
             </div>
 
-            <div id="statsStatus" class="stats-status">Enter your GoatCounter API token above and click <strong>Load Stats</strong>.</div>
+            <div id="statsStatus" class="stats-status" role="status" aria-live="polite">Enter your GoatCounter API token above and click <strong>Load Stats</strong>.</div>
 
             <div id="statsContent" class="stats-content" hidden>
                 <!-- Summary cards -->
@@ -236,13 +82,14 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <a href="https://github.com/anon/anon.github.io">Source on GitHub</a>.</p>
+            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
         </div>
     </footer>
 
     <!-- Chart.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
+    <script src="static/js/tour.js"></script>
     <script>
     var GOATCOUNTER_CODE = "s-index";
 
@@ -252,8 +99,13 @@
         var rangeSelect = document.getElementById("gcRange");
         var loadBtn = document.getElementById("gcLoad");
         var statusEl = document.getElementById("statsStatus");
+        var liveEl = document.getElementById("statsLive");
         var contentEl = document.getElementById("statsContent");
         var hitsChart = null;
+
+        function announceStats(msg) {
+            if (liveEl) liveEl.textContent = msg;
+        }
 
         // Persist token in sessionStorage (not across sessions for security)
         var saved = sessionStorage.getItem("gc_token");
@@ -261,7 +113,11 @@
 
         loadBtn.addEventListener("click", function () {
             var token = tokenInput.value.trim();
-            if (!token) { showStatus("Please enter an API token.", true); return; }
+            if (!token) {
+                showStatus("Please enter an API token.", true);
+                announceStats("Please enter an API token.");
+                return;
+            }
             sessionStorage.setItem("gc_token", token);
             loadDashboard(token);
         });
@@ -274,6 +130,7 @@
             statusEl.className = "stats-status" + (isError ? " stats-error" : "");
             statusEl.hidden = false;
             contentEl.hidden = true;
+            announceStats(msg.replace(/<[^>]+>/g, " "));
         }
 
         function headers(token) {
@@ -296,6 +153,7 @@
 
         function loadDashboard(token) {
             showStatus("Loading…", false);
+            announceStats("Loading statistics.");
             var days = parseInt(rangeSelect.value, 10);
             var end = new Date();
             var start = new Date(end - days * 86400000);
@@ -321,6 +179,7 @@
 
                 statusEl.hidden = true;
                 contentEl.hidden = false;
+                announceStats("Statistics loaded.");
 
                 renderSummary(total, hits);
                 renderChart(hits);
@@ -333,6 +192,7 @@
                 ]);
             }).catch(function (err) {
                 showStatus("Error: " + err.message + ". Check your token and try again.", true);
+                announceStats("Error loading statistics.");
             });
         }
 
@@ -386,9 +246,9 @@
 
             // Detect theme
             var cs = getComputedStyle(document.documentElement);
-            var accent = cs.getPropertyValue("--accent").trim() || "#7c5cbf";
-            var textColor = cs.getPropertyValue("--text").trim() || "#ccc";
-            var gridColor = cs.getPropertyValue("--border").trim() || "#333";
+            var accent = cs.getPropertyValue("--color-accent").trim() || "#7c3aed";
+            var textColor = cs.getPropertyValue("--color-text-muted").trim() || "#a1a1aa";
+            var gridColor = cs.getPropertyValue("--color-border").trim() || "#333";
 
             if (hitsChart) hitsChart.destroy();
             hitsChart = new Chart(ctx, {
@@ -481,7 +341,6 @@
         }
     })();
     </script>
-
     <script data-goatcounter="https://s-index.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>
 </body>

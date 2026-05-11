@@ -1,23 +1,29 @@
 {
-  "_comment": "To add a new year: add an entry to 'datasets'. Provide year, sindex path, graph file (graph-YYYY.html), and matrix markdown path. Set defaultYear as desired.",
+  "_comment": "Per year: sindex JSON, graph-YYYY.html, optional graphEdges (graph-edges-YYYY.json), graphSummary, matrix.md. Run scripts/extract_graph_summary.py and extract_graph_edges.py after regenerating graph HTML.",
   "defaultYear": 2025,
   "datasets": [
     {
       "year": 2023,
       "sindex": "static/dataset/s-indices2023.json",
       "graph": "graph-2023.html",
+      "graphEdges": "static/dataset/graph-edges-2023.json",
+      "graphSummary": "static/dataset/graph-summary-2023.json",
       "matrix": "pages/adjacencymatrix-2023.md"
     },
     {
       "year": 2024,
       "sindex": "static/dataset/s-indices2024.json",
       "graph": "graph-2024.html",
+      "graphEdges": "static/dataset/graph-edges-2024.json",
+      "graphSummary": "static/dataset/graph-summary-2024.json",
       "matrix": "pages/adjacencymatrix-2024.md"
     },
     {
       "year": 2025,
       "sindex": "static/dataset/s-indices2025.json",
       "graph": "graph-2025.html",
+      "graphEdges": "static/dataset/graph-edges-2025.json",
+      "graphSummary": "static/dataset/graph-summary-2025.json",
       "matrix": "pages/adjacencymatrix-2025.md"
     }
   ]

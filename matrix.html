@@ -14,6 +14,7 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
+            <a href="#main" class="skip-link">Skip to main content</a>
             <a href="index.html" class="logo">S-Index</a>
             <nav class="nav">
                 <a href="index.html" class="nav-link">Search</a>
@@ -21,8 +22,6 @@
                 <a href="matrix.html" class="nav-link active">Adjacency Matrix</a>
                 <a href="survey.html" class="nav-link">Survey</a>
                 <a href="stats.html" class="nav-link">Statistics</a>
-                <a href="https://github.com/anon/anon.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
-                <a href="https://github.com/anon/anon.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
             </nav>
             <div class="theme-wrap">
                 <label for="themeSelect" class="sr-only">Theme</label>
@@ -36,7 +35,8 @@
         </div>
     </header>
 
-    <main class="page-content page-content-wide">
+    <main id="main" class="page-content page-content-wide">
+        <div id="matrixLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         <div class="page-toolbar">
             <h1 class="page-heading">Adjacency Matrix</h1>
             <div class="page-toolbar-controls">
@@ -47,18 +47,123 @@
             </div>
         </div>
         <div id="matrix" class="container">Loading…</div>
+
+        <section class="panel matrix-metrics-panel" aria-labelledby="metricsHeading">
+            <h2 id="metricsHeading" class="panel-title">Venue metrics (S-Index and h5-index)</h2>
+            <p class="hint">Sort by column header. h5-index values are taken from Google Scholar Metrics top-venue lists where available; venues outside those lists show an em dash.</p>
+            <div class="matrix-metrics-table-wrap results-table-wrap">
+                <table class="results-table matrix-metrics-table" id="metricsTable">
+                    <thead>
+                        <tr>
+                            <th scope="col"><button type="button" class="table-sort-btn" data-sort="booktitle">Venue</button></th>
+                            <th scope="col"><button type="button" class="table-sort-btn" data-sort="sindex">S-Index</button></th>
+                            <th scope="col"><button type="button" class="table-sort-btn" data-sort="h5">h5-index</button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="metricsTbody"></tbody>
+                </table>
+            </div>
+            <p class="matrix-metrics-footnote">h5-index source: Google Scholar Metrics (where available).</p>
+            <!-- Maintainer: illustrative values live in analysis/h5_data.csv; refresh from official metrics and record access date when updating. -->
+        </section>
     </main>
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <a href="https://github.com/anon/anon.github.io">Source on GitHub</a>.</p>
+            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
         </div>
     </footer>
 
+    <script src="static/js/tour.js"></script>
     <script>
         (function () {
             var CONF_URL = "static/config/datasets.json";
+            var H5_URL = "analysis/h5_data.csv";
             var matrixEl = document.getElementById("matrix");
+            var live = document.getElementById("matrixLive");
+            var config = null;
+            var h5Map = {};
+            var mergedRows = [];
+            var sortKey = "sindex";
+            var sortDir = -1;
+
+            function announce(msg) {
+                if (live) live.textContent = msg;
+            }
+
+            function parseH5Csv(text) {
+                var lines = text.replace(/\r\n/g, "\n").split("\n").filter(function (l) { return l.trim().length; });
+                if (!lines.length) return;
+                var header = lines[0].split(",");
+                var bi = header.indexOf("booktitle");
+                var hi = header.indexOf("h5_index");
+                if (bi < 0 || hi < 0) return;
+                for (var i = 1; i < lines.length; i++) {
+                    var parts = lines[i].split(",");
+                    if (parts.length < 2) continue;
+                    var title = parts[bi].trim();
+                    var h5raw = parts.slice(hi).join(",").trim();
+                    if (!title) continue;
+                    var n = parseInt(h5raw, 10);
+                    h5Map[title] = Number.isFinite(n) ? n : null;
+                }
+            }
+
+            function esc(s) {
+                var d = document.createElement("div");
+                d.textContent = s == null ? "" : String(s);
+                return d.innerHTML;
+            }
+
+            function mergeForYear(year) {
+                var ds = (config.datasets || []).find(function (d) { return String(d.year) === String(year); });
+                if (!ds || !ds.sindex) {
+                    mergedRows = [];
+                    return Promise.resolve();
+                }
+                return fetch(ds.sindex)
+                    .then(function (r) { if (!r.ok) throw new Error("sindex"); return r.json(); })
+                    .then(function (rows) {
+                        mergedRows = rows.map(function (row) {
+                            var bt = row.booktitle;
+                            var s = parseInt(String(row["Non-Distinct-S-Index"] || ""), 10);
+                            var h5 = h5Map.hasOwnProperty(bt) ? h5Map[bt] : null;
+                            return { booktitle: bt, sindex: Number.isFinite(s) ? s : null, h5: h5 };
+                        });
+                    });
+            }
+
+            function renderMetricsTable() {
+                var tbody = document.getElementById("metricsTbody");
+                if (!tbody) return;
+                var rows = mergedRows.slice();
+                rows.sort(function (a, b) {
+                    var av = a[sortKey];
+                    var bv = b[sortKey];
+                    if (av == null) av = sortKey === "booktitle" ? "" : -1e9;
+                    if (bv == null) bv = sortKey === "booktitle" ? "" : -1e9;
+                    if (typeof av === "string") av = av.toLowerCase();
+                    if (typeof bv === "string") bv = bv.toLowerCase();
+                    if (av < bv) return -1 * sortDir;
+                    if (av > bv) return 1 * sortDir;
+                    return 0;
+                });
+                tbody.innerHTML = rows
+                    .map(function (r) {
+                        var h5cell = r.h5 == null ? "—" : String(r.h5);
+                        var scell = r.sindex == null ? "—" : String(r.sindex);
+                        return (
+                            "<tr><td>" +
+                            esc(r.booktitle) +
+                            "</td><td class=\"num\">" +
+                            esc(scell) +
+                            "</td><td class=\"num\">" +
+                            esc(h5cell) +
+                            "</td></tr>"
+                        );
+                    })
+                    .join("");
+            }
 
             function loadConfig(cb) {
                 fetch(CONF_URL)
@@ -69,27 +174,54 @@
                         var sel = document.getElementById("matrixYearSelect");
                         if (sel) sel.innerHTML = '<option value="">No data</option>';
                         if (matrixEl) matrixEl.textContent = "Failed to load configuration.";
+                        announce("Configuration failed to load.");
                     });
             }
 
             function loadMatrix(path) {
                 if (!matrixEl) return;
                 matrixEl.innerHTML = "Loading…";
+                announce("Loading matrix Markdown.");
                 fetch(path)
                     .then(function (r) {
                         if (!r.ok) throw new Error("Failed to load: " + path);
                         return r.text();
                     })
                     .then(function (md) {
-                        matrixEl.innerHTML = (typeof marked !== "undefined") ? marked.parse(md) : "<pre>" + md + "</pre>";
+                        matrixEl.innerHTML = typeof marked !== "undefined" ? marked.parse(md) : "<pre>" + esc(md) + "</pre>";
+                        announce("Matrix Markdown loaded.");
                     })
                     .catch(function (err) {
                         console.error(err);
-                        matrixEl.textContent = "Failed to load matrix data.";
+                        matrixEl.innerHTML = '<p class="empty">Failed to load matrix data.</p>';
+                        announce("Matrix Markdown failed to load.");
                     });
             }
 
-            loadConfig(function (config) {
+            function wireSort() {
+                document.querySelectorAll(".table-sort-btn").forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var k = btn.getAttribute("data-sort");
+                        if (k === sortKey) sortDir *= -1;
+                        else {
+                            sortKey = k;
+                            sortDir = k === "booktitle" ? 1 : -1;
+                        }
+                        renderMetricsTable();
+                        announce("Sorted by " + sortKey + ".");
+                    });
+                });
+            }
+
+            fetch(H5_URL)
+                .then(function (r) { if (!r.ok) throw new Error("h5"); return r.text(); })
+                .then(parseH5Csv)
+                .catch(function () {
+                    announce("h5 data file not found; h5 column will show dashes.");
+                })
+                .finally(function () {
+                    loadConfig(function (cfg) {
+                config = cfg;
                 var datasets = config.datasets || [];
                 var defaultYear = config.defaultYear != null ? String(config.defaultYear) : null;
                 var sel = document.getElementById("matrixYearSelect");
@@ -98,7 +230,8 @@
                 var validDatasets = datasets.filter(function (d) { return d.matrix; });
                 validDatasets.forEach(function (d) {
                     var opt = document.createElement("option");
-                    opt.value = d.matrix;
+                    opt.value = String(d.year);
+                    opt.setAttribute("data-matrix", d.matrix);
                     opt.textContent = d.year;
                     if (String(d.year) === defaultYear) opt.selected = true;
                     sel.appendChild(opt);
@@ -107,17 +240,31 @@
                 if (!sel.options.length) {
                     sel.innerHTML = '<option value="">No matrix configured</option>';
                     if (matrixEl) matrixEl.textContent = "No matrix data available for any year.";
+                    announce("No matrix configured.");
                     return;
                 }
                 if (!sel.value) sel.selectedIndex = 0;
-                loadMatrix(sel.value);
 
-                sel.addEventListener("change", function () {
-                    if (sel.value) loadMatrix(sel.value);
+                function refreshMetrics() {
+                    mergeForYear(sel.value).then(function () {
+                        renderMetricsTable();
+                        announce("Venue metrics table updated for year " + sel.value + ".");
+                    });
+                }
+
+                function applyYear() {
+                    var opt = sel.options[sel.selectedIndex];
+                    var path = opt.getAttribute("data-matrix");
+                    if (path) loadMatrix(path);
+                    refreshMetrics();
+                }
+
+                wireSort();
+                applyYear();
+                sel.addEventListener("change", applyYear);
+                    });
                 });
-            });
 
-            // Mobile nav
             var menuBtn = document.querySelector(".menu-btn");
             var nav = document.querySelector(".nav");
             if (menuBtn && nav) {

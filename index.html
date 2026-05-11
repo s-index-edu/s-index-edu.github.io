@@ -14,6 +14,7 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
+            <a href="#main" class="skip-link">Skip to main content</a>
             <a href="index.html" class="logo">S-Index</a>
             <nav class="nav">
                 <a href="index.html" class="nav-link active">Search</a>
@@ -21,8 +22,6 @@
                 <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
                 <a href="survey.html" class="nav-link">Survey</a>
                 <a href="stats.html" class="nav-link">Statistics</a>
-                <a href="https://github.com/anon/anon.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
-                <a href="https://github.com/anon/anon.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
             </nav>
             <div class="theme-wrap">
                 <label for="themeSelect" class="sr-only">Theme</label>
@@ -36,7 +35,8 @@
         </div>
     </header>
 
-    <main class="main">
+    <main class="main" id="main">
+        <div id="indexLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         <section class="hero">
             <h1 class="hero-title">S-Index Search</h1>
             <p class="hero-desc">Find conference S-Index values. Data is generated from publication indices and parameters.</p>
@@ -60,8 +60,15 @@
             </aside>
 
             <div class="main-content">
-                <section id="main" class="panel panel-main">
-                    <p class="hint">Select conferences from the list or use search, then compare S-Index and S-i-Index in table or chart view.</p>
+                <section class="panel panel-main">
+                    <p class="hint">Select conferences from the list or use search, then compare S-Index and S-i-Index. The default <strong>chart</strong> shows your selection plus conferences that share a co-authorship edge with it; switch to table view for numbers only.</p>
+                </section>
+                <section id="yearComparePanel" class="panel year-compare-panel" hidden>
+                    <h2 class="panel-title">S-Index by year</h2>
+                    <p id="yearCompareHint" class="hint"></p>
+                    <div class="year-compare-canvas-wrap">
+                        <canvas id="yearCompareSpark" aria-label="S-Index values by year for the selected conference"></canvas>
+                    </div>
                 </section>
                 <section id="results" class="panel panel-results" hidden></section>
             </div>
@@ -87,10 +94,11 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <a href="https://github.com/anon/anon.github.io">Source on GitHub</a>.</p>
+            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
         </div>
     </footer>
 
+    <script src="static/js/tour.js"></script>
     <script src="static/js/scripts.js"></script>
     <script data-goatcounter="https://s-index.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>

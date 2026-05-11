@@ -1,0 +1,83 @@
+{
+  "year": 2024,
+  "nodeCount": 1401,
+  "edgeCount": 6646,
+  "topEdgesByWeight": [
+    {
+      "from": "GLOBECOM",
+      "to": "ICC",
+      "weight": 35
+    },
+    {
+      "from": "CVPR",
+      "to": "ECCV",
+      "weight": 32
+    },
+    {
+      "from": "CVPR",
+      "to": "ICCV",
+      "weight": 31
+    },
+    {
+      "from": "ICRA",
+      "to": "IROS",
+      "weight": 28
+    },
+    {
+      "from": "ACL",
+      "to": "EMNLP",
+      "weight": 25
+    },
+    {
+      "from": "NeurIPS",
+      "to": "ICML",
+      "weight": 24
+    },
+    {
+      "from": "ICASSP",
+      "to": "INTERSPEECH",
+      "weight": 23
+    },
+    {
+      "from": "ICCV",
+      "to": "ECCV",
+      "weight": 21
+    },
+    {
+      "from": "DAC",
+      "to": "ICCAD",
+      "weight": 19
+    },
+    {
+      "from": "VTC Spring",
+      "to": "VTC Fall",
+      "weight": 19
+    },
+    {
+      "from": "CDC",
+      "to": "ACC",
+      "weight": 18
+    },
+    {
+      "from": "OFC",
+      "to": "ECOC",
+      "weight": 16
+    },
+    {
+      "from": "NBiS",
+      "to": "CISIS",
+      "weight": 15
+    },
+    {
+      "from": "ICC",
+      "to": "WCNC",
+      "weight": 14
+    },
+    {
+      "from": "ICDE",
+      "to": "SIGMOD Conference",
+      "weight": 14
+    }
+  ],
+  "description": "S-Index co-authorship overlap graph for 2024: 1401 conferences (nodes), 6646 weighted edges (shared authors). Highest-weight pairs are listed for overview."
+}

@@ -1,0 +1,83 @@
+{
+  "year": 2023,
+  "nodeCount": 1381,
+  "edgeCount": 6646,
+  "topEdgesByWeight": [
+    {
+      "from": "GLOBECOM",
+      "to": "ICC",
+      "weight": 32
+    },
+    {
+      "from": "CVPR",
+      "to": "ICCV",
+      "weight": 29
+    },
+    {
+      "from": "ICRA",
+      "to": "IROS",
+      "weight": 26
+    },
+    {
+      "from": "CVPR",
+      "to": "ECCV",
+      "weight": 25
+    },
+    {
+      "from": "ICASSP",
+      "to": "INTERSPEECH",
+      "weight": 21
+    },
+    {
+      "from": "NeurIPS",
+      "to": "ICML",
+      "weight": 21
+    },
+    {
+      "from": "ACL",
+      "to": "EMNLP",
+      "weight": 21
+    },
+    {
+      "from": "ICCV",
+      "to": "ECCV",
+      "weight": 19
+    },
+    {
+      "from": "DAC",
+      "to": "ICCAD",
+      "weight": 19
+    },
+    {
+      "from": "VTC Fall",
+      "to": "VTC Spring",
+      "weight": 17
+    },
+    {
+      "from": "CDC",
+      "to": "ACC",
+      "weight": 16
+    },
+    {
+      "from": "OFC",
+      "to": "ECOC",
+      "weight": 15
+    },
+    {
+      "from": "ICC",
+      "to": "WCNC",
+      "weight": 14
+    },
+    {
+      "from": "ICDE",
+      "to": "SIGMOD Conference",
+      "weight": 14
+    },
+    {
+      "from": "NBiS",
+      "to": "BWCCA",
+      "weight": 14
+    }
+  ],
+  "description": "S-Index co-authorship overlap graph for 2023: 1381 conferences (nodes), 6646 weighted edges (shared authors). Highest-weight pairs are listed for overview."
+}

@@ -1,0 +1,6 @@
+{
+  "snapshotCohortN": 27,
+  "totalResponsesReported": 27,
+  "lastUpdated": "2026-05-10",
+  "note": "Update totalResponsesReported when you merge new exports from the survey instrument. This static site does not call Google APIs at runtime."
+}

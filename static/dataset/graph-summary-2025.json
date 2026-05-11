@@ -1,0 +1,83 @@
+{
+  "year": 2025,
+  "nodeCount": 1370,
+  "edgeCount": 6663,
+  "topEdgesByWeight": [
+    {
+      "from": "ICC",
+      "to": "GLOBECOM",
+      "weight": 36
+    },
+    {
+      "from": "CVPR",
+      "to": "ECCV",
+      "weight": 33
+    },
+    {
+      "from": "CVPR",
+      "to": "ICCV",
+      "weight": 31
+    },
+    {
+      "from": "ICRA",
+      "to": "IROS",
+      "weight": 29
+    },
+    {
+      "from": "ACL",
+      "to": "EMNLP",
+      "weight": 26
+    },
+    {
+      "from": "NeurIPS",
+      "to": "ICML",
+      "weight": 24
+    },
+    {
+      "from": "ICASSP",
+      "to": "INTERSPEECH",
+      "weight": 23
+    },
+    {
+      "from": "DAC",
+      "to": "ICCAD",
+      "weight": 22
+    },
+    {
+      "from": "ICCV",
+      "to": "ECCV",
+      "weight": 21
+    },
+    {
+      "from": "CDC",
+      "to": "ACC",
+      "weight": 19
+    },
+    {
+      "from": "OFC",
+      "to": "ECOC",
+      "weight": 19
+    },
+    {
+      "from": "VTC Spring",
+      "to": "VTC Fall",
+      "weight": 19
+    },
+    {
+      "from": "NeurIPS",
+      "to": "ICLR",
+      "weight": 15
+    },
+    {
+      "from": "ICDE",
+      "to": "SIGMOD Conference",
+      "weight": 15
+    },
+    {
+      "from": "CRYPTO",
+      "to": "EUROCRYPT",
+      "weight": 15
+    }
+  ],
+  "description": "S-Index co-authorship overlap graph for 2025: 1370 conferences (nodes), 6663 weighted edges (shared authors). Highest-weight pairs are listed for overview."
+}

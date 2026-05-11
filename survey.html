@@ -14,6 +14,7 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
+            <a href="#main" class="skip-link">Skip to main content</a>
             <a href="index.html" class="logo">S-Index</a>
             <nav class="nav">
                 <a href="index.html" class="nav-link">Search</a>
@@ -21,8 +22,6 @@
                 <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
                 <a href="survey.html" class="nav-link active">Survey</a>
                 <a href="stats.html" class="nav-link">Statistics</a>
-                <a href="https://github.com/anon/anon.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
-                <a href="https://github.com/anon/anon.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
             </nav>
             <div class="theme-wrap">
                 <label for="themeSelect" class="sr-only">Theme</label>
@@ -36,11 +35,16 @@
         </div>
     </header>
 
-    <main class="page-content">
-        <div id="survey" class="container">Loading…</div>
-        <!-- Replace YOUR_GOOGLE_FORM_ID with your form's ID from Google Forms → Send → Embed. For width/height use 640 and 800. -->
-        <section class="survey-form-wrap" aria-label="Survey form">
-            <h2 class="form-title">Fill out the survey</h2>
+    <main id="main" class="page-content">
+        <div id="surveyLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+        <section class="panel" aria-labelledby="surveyCounterHeading">
+            <h2 id="surveyCounterHeading" class="panel-title">Survey instrument status</h2>
+            <p id="surveyCounterText" class="hint">Loading survey metadata…</p>
+            <p class="hint">The formative cohort summarized in the report below is a fixed snapshot (N=<span id="surveySnapshotN">—</span>). Total responses recorded: <strong id="surveyTotalN">—</strong> (last updated <span id="surveyUpdated">—</span>).</p>
+            <!-- Maintainer: update static/config/survey-meta.json when survey counts change. -->
+        </section>
+        <section class="panel survey-form-wrap" aria-label="Survey form">
+            <h2 class="panel-title">Fill out the survey</h2>
             <iframe
                 class="google-form-embed"
                 src="https://docs.google.com/forms/d/e/1FAIpQLSeenm4nU3HycapflrqY_Uo62bs1ADXtjXhIeQp_CAFf0v8_NA/viewform?embedded=true"
@@ -49,28 +53,54 @@
                 marginwidth="0"
                 title="Conference survey form">Loading…</iframe>
         </section>
+        <div id="survey" class="container">Loading…</div>
     </main>
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <a href="https://github.com/anon/anon.github.io">Source on GitHub</a>.</p>
+            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
         </div>
     </footer>
 
-    <script>
-        fetch("pages/survey.md")
-            .then(function (response) {
-                if (!response.ok) throw new Error("Network response was not ok: " + response.statusText);
-                return response.text();
-            })
-            .then(function (data) {
-                var el = document.getElementById("survey");
-                if (el && typeof marked !== "undefined") el.innerHTML = marked.parse(data);
-            })
-            .catch(function (err) { console.error(err); });
-    </script>
+    <script src="static/js/tour.js"></script>
     <script>
         (function () {
+            var live = document.getElementById("surveyLive");
+            function announce(msg) {
+                if (live) live.textContent = msg;
+            }
+            fetch("pages/survey.md")
+                .then(function (response) {
+                    if (!response.ok) throw new Error("Network response was not ok: " + response.statusText);
+                    return response.text();
+                })
+                .then(function (data) {
+                    var el = document.getElementById("survey");
+                    if (el && typeof marked !== "undefined") el.innerHTML = marked.parse(data);
+                    announce("Survey report loaded.");
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    announce("Failed to load survey report.");
+                });
+
+            fetch("static/config/survey-meta.json")
+                .then(function (r) { if (!r.ok) throw new Error("meta"); return r.json(); })
+                .then(function (meta) {
+                    var snap = document.getElementById("surveySnapshotN");
+                    var total = document.getElementById("surveyTotalN");
+                    var upd = document.getElementById("surveyUpdated");
+                    if (snap) snap.textContent = meta.snapshotCohortN != null ? String(meta.snapshotCohortN) : "—";
+                    if (total) total.textContent = meta.totalResponsesReported != null ? String(meta.totalResponsesReported) : "—";
+                    if (upd) upd.textContent = meta.lastUpdated || "—";
+                    var t = document.getElementById("surveyCounterText");
+                    if (t) t.textContent = meta.note || "";
+                    announce("Survey metadata loaded.");
+                })
+                .catch(function () {
+                    announce("Survey metadata not available.");
+                });
+
             var menuBtn = document.querySelector(".menu-btn");
             var nav = document.querySelector(".nav");
             if (menuBtn && nav) {

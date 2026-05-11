@@ -13,6 +13,7 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
+            <a href="#main" class="skip-link">Skip to main content</a>
             <a href="index.html" class="logo">S-Index</a>
             <nav class="nav">
                 <a href="index.html" class="nav-link">Search</a>
@@ -20,8 +21,6 @@
                 <a href="matrix.html" class="nav-link">Adjacency Matrix</a>
                 <a href="survey.html" class="nav-link">Survey</a>
                 <a href="stats.html" class="nav-link">Statistics</a>
-                <a href="https://github.com/anon/anon.github.io" class="nav-link nav-link-external" target="_blank" rel="noopener">GitHub</a>
-                <a href="https://github.com/anon/anon.github.io/discussions/1" class="nav-link nav-link-external" target="_blank" rel="noopener">Discussion</a>
             </nav>
             <div class="theme-wrap">
                 <label for="themeSelect" class="sr-only">Theme</label>
@@ -35,7 +34,18 @@
         </div>
     </header>
 
-    <main class="graph-page">
+    <main id="main" class="graph-page">
+        <div id="graphLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+        <div id="graphProceedOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="graphProceedTitle" hidden>
+            <div class="panel tour-dialog">
+                <h2 id="graphProceedTitle" class="tour-step-title">Full graph warning</h2>
+                <p class="tour-step-body">You opened the Graph page without selecting any conferences from Search. Loading all conferences can take time and may push your device’s memory. The full graph is also very dense and hard to interpret.</p>
+                <div class="tour-actions">
+                    <a class="btn" id="graphProceedBack" href="index.html">Back to select conferences</a>
+                    <button type="button" class="btn btn-primary" id="graphProceedOk">Proceed anyway</button>
+                </div>
+            </div>
+        </div>
         <div class="graph-toolbar">
             <div class="graph-toolbar-left">
                 <label for="graphYearSelect" class="toolbar-label">Year</label>
@@ -43,66 +53,446 @@
                     <option value="">Loading…</option>
                 </select>
             </div>
-            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Click a node to highlight its neighbourhood.</p>
+            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Open a filtered view from Search to see only selected venues plus their neighbours.</p>
         </div>
-        <div class="graph-frame-wrap">
-            <iframe id="graphFrame" class="graph-iframe" title="S-Index conference graph" frameborder="0">
-                Your browser does not support iframes.
+        <section id="graphSummaryPanel" class="panel graph-summary-panel" hidden aria-labelledby="graphSummaryHeading">
+            <h2 id="graphSummaryHeading" class="panel-title">Text summary of the graph</h2>
+            <p id="graphSummaryBody" class="graph-summary-body"></p>
+            <p class="hint">Highest-weight edges (shared authors):</p>
+            <ol id="graphSummaryEdges" class="graph-summary-list"></ol>
+        </section>
+
+        <div id="graphFilteredWrap" class="graph-filtered-wrap" hidden>
+            <p id="graphFilteredHint" class="hint graph-filtered-hint"></p>
+            <div id="graphFilteredMount" class="graph-filtered-mount" role="application" aria-label="Filtered co-authorship network graph"></div>
+            <p class="hint"><a href="graph.html">Show full interactive graph</a> (drops venue filter).</p>
+        </div>
+
+        <div class="graph-frame-wrap" id="graphFrameWrap">
+            <iframe id="graphFrame" class="graph-iframe" title="S-Index conference graph" frameborder="0" aria-describedby="graphSummaryBody">
+                <p>This page loads an interactive network. If your browser cannot show iframes, use the text summary above the graph frame.</p>
             </iframe>
         </div>
     </main>
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <a href="https://github.com/anon/anon.github.io">Source on GitHub</a>.</p>
+            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
         </div>
     </footer>
 
+    <script src="static/js/tour.js"></script>
     <script>
         (function () {
             var CONF_URL = "static/config/datasets.json";
+            var VIS_SCRIPT = "https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js";
+            var live = document.getElementById("graphLive");
+            var filteredNetwork = null;
+            var qs = new URLSearchParams(window.location.search);
+            var filteredSeedsFromUrl = [];
+            var currentParsed = null;
+            var lastResolvedTheme = null;
+            var overlay = document.getElementById("graphProceedOverlay");
+
+            function parseVenuesQuery() {
+                var v = qs.get("venues");
+                if (!v || !String(v).trim()) return [];
+                return String(v)
+                    .split(",")
+                    .map(function (s) {
+                        try {
+                            return decodeURIComponent(s.trim());
+                        } catch (e) {
+                            return s.trim();
+                        }
+                    })
+                    .filter(Boolean);
+            }
+
+            filteredSeedsFromUrl = parseVenuesQuery();
+
+            function announce(msg) {
+                if (live) live.textContent = msg;
+            }
+
+            function expandSeedIds(seeds, edges) {
+                var out = new Set();
+                seeds.forEach(function (s) {
+                    out.add(s);
+                });
+                if (!edges || !edges.length) return out;
+                var adj = new Map();
+                edges.forEach(function (e) {
+                    var a = e.from;
+                    var b = e.to;
+                    if (a == null || b == null) return;
+                    if (!adj.has(a)) adj.set(a, new Set());
+                    if (!adj.has(b)) adj.set(b, new Set());
+                    adj.get(a).add(b);
+                    adj.get(b).add(a);
+                });
+                seeds.forEach(function (s) {
+                    var nb = adj.get(s);
+                    if (nb) {
+                        nb.forEach(function (n) {
+                            out.add(n);
+                        });
+                    }
+                });
+                return out;
+            }
+
+            function destroyFilteredNetwork() {
+                if (filteredNetwork) {
+                    filteredNetwork.destroy();
+                    filteredNetwork = null;
+                }
+                var mount = document.getElementById("graphFilteredMount");
+                if (mount) mount.innerHTML = "";
+            }
+
+            function loadVisScript() {
+                if (typeof vis !== "undefined" && vis.Network) return Promise.resolve();
+                return new Promise(function (resolve, reject) {
+                    var tag = document.createElement("script");
+                    tag.src = VIS_SCRIPT;
+                    tag.crossOrigin = "anonymous";
+                    tag.onload = resolve;
+                    tag.onerror = function () {
+                        reject(new Error("Could not load vis-network"));
+                    };
+                    document.head.appendChild(tag);
+                });
+            }
+
+            function themeGraphColors() {
+                var cs = getComputedStyle(document.documentElement);
+                return {
+                    accent: cs.getPropertyValue("--color-accent").trim() || "#7c3aed",
+                    surface: cs.getPropertyValue("--color-surface").trim() || "#ffffff",
+                    surfaceElevated: cs.getPropertyValue("--color-surface-elevated").trim() || "#f1f3f5",
+                    border: cs.getPropertyValue("--color-border").trim() || "#dee2e6",
+                    text: cs.getPropertyValue("--color-text").trim() || "#212529",
+                    textMuted: cs.getPropertyValue("--color-text-muted").trim() || "#6c757d",
+                    bg: cs.getPropertyValue("--color-bg").trim() || "#f8f9fa"
+                };
+            }
+
+            function resolvedTheme() {
+                return (
+                    document.documentElement.getAttribute("data-theme") ||
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+                );
+            }
 
             function loadConfig(cb) {
                 fetch(CONF_URL)
-                    .then(function (r) { if (!r.ok) throw new Error("Config load failed"); return r.json(); })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("Config load failed");
+                        return r.json();
+                    })
                     .then(cb)
                     .catch(function (err) {
                         console.error(err);
-                        document.getElementById("graphYearSelect").innerHTML = '<option value="">No data</option>';
+                        var sel = document.getElementById("graphYearSelect");
+                        if (sel) sel.innerHTML = '<option value="">No data</option>';
+                        announce("Failed to load configuration.");
                     });
             }
 
-            function setGraph(path) {
-                var frame = document.getElementById("graphFrame");
-                frame.src = path;
+            function renderSummary(summaryUrl) {
+                var panel = document.getElementById("graphSummaryPanel");
+                var body = document.getElementById("graphSummaryBody");
+                var list = document.getElementById("graphSummaryEdges");
+                if (!summaryUrl || !panel || !body || !list) {
+                    if (panel) panel.hidden = true;
+                    return;
+                }
+                announce("Loading graph text summary.");
+                fetch(summaryUrl)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("summary");
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        body.textContent = data.description || "";
+                        list.innerHTML = "";
+                        (data.topEdgesByWeight || []).forEach(function (e) {
+                            var li = document.createElement("li");
+                            li.textContent =
+                                (e.from || "") +
+                                " — " +
+                                (e.to || "") +
+                                " (weight " +
+                                (e.weight != null ? e.weight : "?") +
+                                ")";
+                            list.appendChild(li);
+                        });
+                        panel.hidden = false;
+                        announce("Graph summary ready: " + (data.nodeCount || 0) + " nodes, " + (data.edgeCount || 0) + " edges.");
+                    })
+                    .catch(function () {
+                        panel.hidden = true;
+                        announce("Graph summary file could not be loaded.");
+                    });
             }
 
-            loadConfig(function (config) {
+            function setIframeGraph(path, summaryUrl) {
+                var frameWrap = document.getElementById("graphFrameWrap");
+                var filt = document.getElementById("graphFilteredWrap");
+                var frame = document.getElementById("graphFrame");
+                destroyFilteredNetwork();
+                if (filt) filt.hidden = true;
+                if (frameWrap) frameWrap.hidden = false;
+                frame.src = path;
+                renderSummary(summaryUrl);
+            }
+
+            function runVisFromEdges(parsed, seedsOrNull) {
+                var frameWrap = document.getElementById("graphFrameWrap");
+                var filt = document.getElementById("graphFilteredWrap");
+                var hint = document.getElementById("graphFilteredHint");
+                var frame = document.getElementById("graphFrame");
+                if (frame) frame.src = "about:blank";
+
+                if (!parsed.graphEdges) {
+                    announce("Filtered view needs graphEdges data for this year. Showing full graph.");
+                    filteredSeedsFromUrl = [];
+                    setIframeGraph(parsed.graph, parsed.graphSummary || "");
+                    return;
+                }
+
+                destroyFilteredNetwork();
+                if (frameWrap) frameWrap.hidden = true;
+                if (filt) filt.hidden = false;
+                if (hint) hint.textContent = "Loading graph…";
+                announce("Loading graph.");
+
+                fetch(parsed.graphEdges)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("edges");
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        var seeds = Array.isArray(seedsOrNull) ? seedsOrNull : [];
+                        var idSet;
+                        if (seeds.length) {
+                            idSet = new Set(expandSeedIds(seeds, data.edges));
+                        } else {
+                            idSet = new Set((data.nodes || []).map(function (n) { return n.id; }));
+                        }
+                        var nodeMap = new Map(data.nodes.map(function (n) {
+                            return [n.id, n];
+                        }));
+
+                        var t = themeGraphColors();
+                        var seedSet = new Set(seeds);
+                        var isDark = resolvedTheme() === "dark";
+                        var labelStroke = isDark ? t.bg : "#ffffff";
+                        var labelBg = isDark ? "rgba(15,15,18,0.72)" : "rgba(255,255,255,0.9)";
+                        var nodesOut = [];
+                        idSet.forEach(function (id) {
+                            var raw = nodeMap.get(id);
+                            if (!raw) return;
+                            var isSeed = seedSet.has(id);
+                            var n = Object.assign({}, raw);
+                            // Reduce clutter: always label selected nodes.
+                            // In dark mode, hide neighbour labels by default (show on hover).
+                            n._originalLabel = n.label;
+                            if (!isSeed && isDark) n.label = undefined;
+                            n.color = {
+                                background: isSeed ? t.accent : t.surfaceElevated,
+                                border: isSeed ? t.accent : t.textMuted,
+                                highlight: { background: t.accent, border: t.accent },
+                                hover: { background: t.surfaceElevated, border: t.accent }
+                            };
+                            n.font = {
+                                color: isSeed ? (isDark ? "#ffffff" : t.text) : t.text,
+                                size: isSeed ? 16 : 13,
+                                strokeWidth: isSeed ? 6 : 3,
+                                strokeColor: isSeed ? labelStroke : (isDark ? t.bg : "#ffffff"),
+                                background: isSeed ? labelBg : (isDark ? labelBg : "rgba(255,255,255,0)")
+                            };
+                            n.borderWidth = isSeed ? 3 : 1;
+                            nodesOut.push(n);
+                        });
+
+                        var edgesOut = data.edges.filter(function (e) {
+                            return idSet.has(e.from) && idSet.has(e.to);
+                        });
+
+                        renderSummary(parsed.graphSummary || "");
+
+                        if (hint) {
+                            hint.textContent = seeds.length
+                                ? ("Filtered view: " +
+                                  seeds.length +
+                                  " venue(s) you selected · " +
+                                  nodesOut.length +
+                                  " total nodes · " +
+                                  edgesOut.length +
+                                  " edges (first-degree neighbours).")
+                                : ("Full graph (theme-aware): " +
+                                  nodesOut.length +
+                                  " total nodes · " +
+                                  edgesOut.length +
+                                  " edges.");
+                        }
+
+                        return loadVisScript().then(function () {
+                            var container = document.getElementById("graphFilteredMount");
+                            container.innerHTML = "";
+                            var dsN = new vis.DataSet(nodesOut);
+                            var dsE = new vis.DataSet(edgesOut);
+                            var options = {
+                                nodes: { shape: "dot", scaling: { min: 6, max: 28 } },
+                                edges: {
+                                    smooth: true,
+                                    color: { color: t.textMuted, highlight: t.accent, hover: t.accent, opacity: 0.32 },
+                                    width: 1
+                                },
+                                physics: {
+                                    enabled: true,
+                                    stabilization: { iterations: 100 }
+                                },
+                                interaction: { hover: true, tooltipDelay: 80 }
+                            };
+                            filteredNetwork = new vis.Network(container, { nodes: dsN, edges: dsE }, options);
+                            // Hover: temporarily show neighbour labels.
+                            filteredNetwork.on("hoverNode", function (params) {
+                                var nodeId = params && params.node;
+                                if (!nodeId) return;
+                                var n = dsN.get(nodeId);
+                                if (!n) return;
+                                if (seedSet.has(nodeId)) return;
+                                if (n.label) return;
+                                dsN.update({ id: nodeId, label: n._originalLabel || n.id });
+                            });
+                            filteredNetwork.on("blurNode", function (params) {
+                                var nodeId = params && params.node;
+                                if (!nodeId) return;
+                                if (seedSet.has(nodeId)) return;
+                                // In dark mode we hide neighbour labels; in light mode keep them visible.
+                                if (resolvedTheme() === "dark") dsN.update({ id: nodeId, label: undefined });
+                            });
+                            announce("Filtered graph ready.");
+                        });
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        if (hint) hint.textContent = "";
+                        announce("Could not load graph edges; showing full graph.");
+                        setIframeGraph(parsed.graph, parsed.graphSummary || "");
+                    });
+            }
+
+            function syncGraphView(parsed) {
+                currentParsed = parsed;
+                lastResolvedTheme = resolvedTheme();
+                if (filteredSeedsFromUrl && filteredSeedsFromUrl.length) {
+                    runVisFromEdges(parsed, filteredSeedsFromUrl);
+                } else {
+                    if (resolvedTheme() === "dark") {
+                        runVisFromEdges(parsed, null);
+                    } else {
+                        setIframeGraph(parsed.graph, parsed.graphSummary || "");
+                    }
+                }
+            }
+
+            function startGraph() {
+                loadConfig(function (config) {
                 var datasets = config.datasets || [];
                 var defaultYear = config.defaultYear != null ? String(config.defaultYear) : null;
+                var yearFromUrl = qs.get("year");
                 var sel = document.getElementById("graphYearSelect");
                 sel.innerHTML = "";
                 datasets.forEach(function (d) {
                     if (!d.graph) return;
                     var opt = document.createElement("option");
-                    opt.value = d.graph;
+                    opt.dataset.year = String(d.year);
+                    opt.value = JSON.stringify({
+                        graph: d.graph,
+                        summary: d.graphSummary || "",
+                        graphEdges: d.graphEdges || "",
+                        year: d.year
+                    });
                     opt.textContent = d.year;
                     if (String(d.year) === defaultYear) opt.selected = true;
                     sel.appendChild(opt);
                 });
                 if (!sel.options.length) {
                     sel.innerHTML = '<option value="">No graphs configured</option>';
+                    announce("No graph files configured.");
                     return;
                 }
-                if (!sel.value) sel.selectedIndex = 0;
-                setGraph(sel.value);
+
+                if (yearFromUrl) {
+                    for (var i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].dataset.year === String(yearFromUrl)) {
+                            sel.selectedIndex = i;
+                            break;
+                        }
+                    }
+                } else if (!sel.value) {
+                    sel.selectedIndex = 0;
+                }
+
+                function applyYearSelection() {
+                    try {
+                        var parsed = JSON.parse(sel.value);
+                        syncGraphView(parsed);
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+
+                applyYearSelection();
 
                 sel.addEventListener("change", function () {
-                    if (sel.value) setGraph(sel.value);
+                    if (!sel.value) return;
+                    try {
+                        var parsed = JSON.parse(sel.value);
+                        syncGraphView(parsed);
+                    } catch (e) {
+                        console.error(e);
+                    }
                 });
-            });
 
-            // Mobile nav
+                // Re-render when theme changes (theme.js updates html[data-theme] and classes)
+                var obs = new MutationObserver(function () {
+                    if (!currentParsed) return;
+                    var now = resolvedTheme();
+                    if (now === lastResolvedTheme) return;
+                    lastResolvedTheme = now;
+                    syncGraphView(currentParsed);
+                });
+                obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+
+                });
+            }
+
+            // Guard: opening Graph without a venue filter can be heavy and messy.
+            if ((!filteredSeedsFromUrl || filteredSeedsFromUrl.length === 0) && qs.get("proceed") !== "1") {
+                if (overlay) {
+                    overlay.hidden = false;
+                    var ok = document.getElementById("graphProceedOk");
+                    if (ok) {
+                        ok.focus();
+                        ok.addEventListener("click", function () {
+                            qs.set("proceed", "1");
+                            history.replaceState(null, "", "graph.html?" + qs.toString());
+                            overlay.hidden = true;
+                            startGraph();
+                        });
+                    }
+                } else {
+                    startGraph();
+                }
+            } else {
+                startGraph();
+            }
+
             var menuBtn = document.querySelector(".menu-btn");
             var nav = document.querySelector(".nav");
             if (menuBtn && nav) {
