@@ -39,9 +39,9 @@
         <div id="graphProceedOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="graphProceedTitle" hidden>
             <div class="panel tour-dialog">
                 <h2 id="graphProceedTitle" class="tour-step-title">Full graph warning</h2>
-                <p class="tour-step-body">You opened the Graph page without selecting any conferences from Search. Loading all conferences can take time and may push your device’s memory. The full graph is also very dense and hard to interpret.</p>
+                <p class="tour-step-body">You opened the Graph page without a venue filter. Loading the full network can take time and use a lot of memory, and the graph is very dense. Use <strong>Focus on venues</strong> on this page to add conferences and click <strong>Apply subgraph</strong>, or choose <strong>Proceed anyway</strong> to load everything.</p>
                 <div class="tour-actions">
-                    <a class="btn" id="graphProceedBack" href="index.html">Back to select conferences</a>
+                    <button type="button" class="btn" id="graphProceedUseFilters">Use on-page filters</button>
                     <button type="button" class="btn btn-primary" id="graphProceedOk">Proceed anyway</button>
                 </div>
             </div>
@@ -53,8 +53,26 @@
                     <option value="">Loading…</option>
                 </select>
             </div>
-            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Open a filtered view from Search to see only selected venues plus their neighbours.</p>
+            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Use <strong>Focus on venues</strong> below to show a subgraph, or proceed to the full graph when offered.</p>
         </div>
+        <section class="panel graph-filter-panel" aria-labelledby="graphFilterTitle">
+            <h2 id="graphFilterTitle" class="panel-title">Focus on venues</h2>
+            <p class="hint">Add conferences by name (must match the dataset). <strong>Apply subgraph</strong> shows each venue plus its first-degree neighbours.</p>
+            <div class="graph-filter-row">
+                <div>
+                    <label for="graphVenueInput" class="toolbar-label">Conference name</label>
+                    <input type="text" id="graphVenueInput" class="search-input" list="graphVenueDatalist" placeholder="Type to search, then Add…" autocomplete="off">
+                    <datalist id="graphVenueDatalist"></datalist>
+                </div>
+                <button type="button" class="btn btn-primary" id="graphVenueAdd" disabled>Add</button>
+            </div>
+            <div id="graphVenueChips" class="graph-venue-chips" aria-live="polite"></div>
+            <div class="graph-filter-actions">
+                <button type="button" class="btn btn-primary" id="graphApplyFilter" disabled>Apply subgraph</button>
+                <button type="button" class="btn" id="graphClearVenues">Clear venues</button>
+                <button type="button" class="btn" id="graphProceedInline" hidden>Proceed to full graph…</button>
+            </div>
+        </section>
         <section id="graphSummaryPanel" class="panel graph-summary-panel" hidden aria-labelledby="graphSummaryHeading">
             <h2 id="graphSummaryHeading" class="panel-title">Text summary of the graph</h2>
             <p id="graphSummaryBody" class="graph-summary-body"></p>
@@ -89,27 +107,49 @@
             var live = document.getElementById("graphLive");
             var filteredNetwork = null;
             var qs = new URLSearchParams(window.location.search);
-            var filteredSeedsFromUrl = [];
+            var userAcceptedFullGraph = qs.get("proceed") === "1";
+
+            function venuesFromParams(sp) {
+                var out = [];
+                var v = sp.get("venues");
+                if (v && String(v).trim()) {
+                    String(v).split(",").forEach(function (part) {
+                        var t = part.trim();
+                        if (!t) return;
+                        try {
+                            out.push(decodeURIComponent(t));
+                        } catch (e) {
+                            out.push(t);
+                        }
+                    });
+                }
+                var one = sp.get("venue");
+                if (one && String(one).trim()) {
+                    var t = String(one).trim();
+                    try {
+                        out.push(decodeURIComponent(t));
+                    } catch (e) {
+                        out.push(t);
+                    }
+                }
+                var seen = new Set();
+                return out.filter(function (x) {
+                    if (!x || seen.has(x)) return false;
+                    seen.add(x);
+                    return true;
+                });
+            }
+
+            var activeVenueSeeds = venuesFromParams(qs);
+            var pendingVenues = activeVenueSeeds.slice();
+            var venueNameSet = new Set();
             var currentParsed = null;
             var lastResolvedTheme = null;
             var overlay = document.getElementById("graphProceedOverlay");
-
-            function parseVenuesQuery() {
-                var v = qs.get("venues");
-                if (!v || !String(v).trim()) return [];
-                return String(v)
-                    .split(",")
-                    .map(function (s) {
-                        try {
-                            return decodeURIComponent(s.trim());
-                        } catch (e) {
-                            return s.trim();
-                        }
-                    })
-                    .filter(Boolean);
-            }
-
-            filteredSeedsFromUrl = parseVenuesQuery();
+            var filterUiWired = false;
+            var graphListenersWired = false;
+            var graphBootFinished = false;
+            var overlayDismissedForFilters = false;
 
             function announce(msg) {
                 if (live) live.textContent = msg;
@@ -257,7 +297,6 @@
 
                 if (!parsed.graphEdges) {
                     announce("Filtered view needs graphEdges data for this year. Showing full graph.");
-                    filteredSeedsFromUrl = [];
                     setIframeGraph(parsed.graph, parsed.graphSummary || "");
                     return;
                 }
@@ -386,11 +425,51 @@
                     });
             }
 
+            function updateProceedChrome() {
+                var inline = document.getElementById("graphProceedInline");
+                if (!inline) return;
+                var show =
+                    graphBootFinished &&
+                    (!activeVenueSeeds || !activeVenueSeeds.length) &&
+                    !userAcceptedFullGraph &&
+                    overlayDismissedForFilters;
+                if (show) inline.removeAttribute("hidden");
+                else inline.setAttribute("hidden", "");
+            }
+
+            function acceptFullGraphAndSync() {
+                userAcceptedFullGraph = true;
+                overlayDismissedForFilters = false;
+                if (overlay) overlay.hidden = true;
+                pushGraphURL();
+                if (currentParsed) {
+                    syncGraphView(currentParsed);
+                } else {
+                    startGraph();
+                }
+            }
+
             function syncGraphView(parsed) {
                 currentParsed = parsed;
                 lastResolvedTheme = resolvedTheme();
-                if (filteredSeedsFromUrl && filteredSeedsFromUrl.length) {
-                    runVisFromEdges(parsed, filteredSeedsFromUrl);
+                if ((!activeVenueSeeds || !activeVenueSeeds.length) && !userAcceptedFullGraph) {
+                    destroyFilteredNetwork();
+                    var frame = document.getElementById("graphFrame");
+                    if (frame) frame.src = "about:blank";
+                    var fw = document.getElementById("graphFrameWrap");
+                    var filt = document.getElementById("graphFilteredWrap");
+                    var panel = document.getElementById("graphSummaryPanel");
+                    if (filt) filt.hidden = true;
+                    if (fw) fw.hidden = true;
+                    if (panel) panel.hidden = true;
+                    announce(
+                        "Tip: add conferences under Focus on venues, then Apply subgraph. Or use Proceed to full graph to load the entire network."
+                    );
+                    updateProceedChrome();
+                    return;
+                }
+                if (activeVenueSeeds && activeVenueSeeds.length) {
+                    runVisFromEdges(parsed, activeVenueSeeds);
                 } else {
                     if (resolvedTheme() === "dark") {
                         runVisFromEdges(parsed, null);
@@ -398,99 +477,358 @@
                         setIframeGraph(parsed.graph, parsed.graphSummary || "");
                     }
                 }
+                updateProceedChrome();
+            }
+
+            function escapeHtml(s) {
+                var d = document.createElement("div");
+                d.textContent = s == null ? "" : String(s);
+                return d.innerHTML;
+            }
+
+            function refreshQsFromLocation() {
+                qs = new URLSearchParams(window.location.search);
+            }
+
+            function pushGraphURL() {
+                refreshQsFromLocation();
+                var nqs = new URLSearchParams(window.location.search);
+                var sel = document.getElementById("graphYearSelect");
+                if (sel && sel.selectedOptions.length) {
+                    nqs.set("year", sel.selectedOptions[0].dataset.year);
+                }
+                if (activeVenueSeeds.length) {
+                    nqs.set("venues", activeVenueSeeds.map(function (s) { return encodeURIComponent(s); }).join(","));
+                    nqs.delete("venue");
+                    nqs.delete("proceed");
+                } else {
+                    nqs.delete("venues");
+                    nqs.delete("venue");
+                    if (userAcceptedFullGraph) nqs.set("proceed", "1");
+                    else nqs.delete("proceed");
+                }
+                var tail = nqs.toString();
+                history.replaceState(null, "", tail ? "graph.html?" + tail : "graph.html");
+                refreshQsFromLocation();
+            }
+
+            function fillVenueDatalist(names) {
+                var dl = document.getElementById("graphVenueDatalist");
+                if (!dl) return;
+                dl.innerHTML = "";
+                names.forEach(function (name) {
+                    var o = document.createElement("option");
+                    o.value = name;
+                    dl.appendChild(o);
+                });
+            }
+
+            function loadVenueListForCurrentYear(parsed) {
+                var p = parsed.sindex || parsed.path;
+                if (!p) {
+                    venueNameSet = new Set();
+                    fillVenueDatalist([]);
+                    return Promise.resolve();
+                }
+                return fetch(p)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("sindex");
+                        return r.json();
+                    })
+                    .then(function (rows) {
+                        var names = (rows || []).map(function (row) { return row.booktitle; }).filter(Boolean);
+                        venueNameSet = new Set(names);
+                        fillVenueDatalist(names);
+                        pendingVenues = pendingVenues.filter(function (n) { return venueNameSet.has(n); });
+                        renderVenueChips();
+                    })
+                    .catch(function () {
+                        venueNameSet = new Set();
+                        fillVenueDatalist([]);
+                    });
+            }
+
+            function renderVenueChips() {
+                var box = document.getElementById("graphVenueChips");
+                if (!box) return;
+                if (!pendingVenues.length) {
+                    box.innerHTML = "";
+                    return;
+                }
+                box.innerHTML = pendingVenues
+                    .map(function (name) {
+                        return (
+                            '<span class="graph-venue-chip">' +
+                            escapeHtml(name) +
+                            '<button type="button" class="graph-venue-remove" data-name="' +
+                            encodeURIComponent(name) +
+                            '" aria-label="Remove ' +
+                            escapeHtml(name) +
+                            '">×</button></span>'
+                        );
+                    })
+                    .join("");
+                box.querySelectorAll(".graph-venue-remove").forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var key = btn.getAttribute("data-name");
+                        if (!key) return;
+                        try {
+                            key = decodeURIComponent(key);
+                        } catch (e) {
+                            return;
+                        }
+                        pendingVenues = pendingVenues.filter(function (x) {
+                            return x !== key;
+                        });
+                        renderVenueChips();
+                    });
+                });
+            }
+
+            function initVenueCatalogEarly() {
+                return fetch(CONF_URL)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error("config");
+                        return r.json();
+                    })
+                    .then(function (cfg) {
+                        var ds = cfg.datasets || [];
+                        if (!ds.length) return;
+                        var want = new URLSearchParams(window.location.search).get("year");
+                        var pick =
+                            ds.find(function (d) {
+                                return String(d.year) === String(want);
+                            }) ||
+                            ds.find(function (d) {
+                                return String(d.year) === String(cfg.defaultYear);
+                            }) ||
+                            ds[0];
+                        return loadVenueListForCurrentYear({
+                            sindex: pick.sindex || pick.path || ""
+                        });
+                    })
+                    .catch(function () {});
+            }
+
+            function wireGraphFilterUI() {
+                if (filterUiWired) return;
+                filterUiWired = true;
+                var inp = document.getElementById("graphVenueInput");
+                var addBtn = document.getElementById("graphVenueAdd");
+                var applyBtn = document.getElementById("graphApplyFilter");
+                var clearBtn = document.getElementById("graphClearVenues");
+                if (addBtn && inp) {
+                    addBtn.addEventListener("click", function () {
+                        if (!graphBootFinished) {
+                            announce("Wait for the graph controls to finish loading.");
+                            return;
+                        }
+                        var raw = (inp.value || "").trim();
+                        if (!raw) return;
+                        if (!venueNameSet.has(raw)) {
+                            announce("No exact match for that name in this year’s dataset. Pick a suggestion from the list.");
+                            return;
+                        }
+                        if (pendingVenues.indexOf(raw) >= 0) {
+                            announce("Already in the list.");
+                            return;
+                        }
+                        pendingVenues.push(raw);
+                        inp.value = "";
+                        renderVenueChips();
+                        announce("Added " + raw + ".");
+                    });
+                }
+                if (applyBtn) {
+                    applyBtn.addEventListener("click", function () {
+                        if (!graphBootFinished) {
+                            announce("Wait for the graph controls to finish loading.");
+                            return;
+                        }
+                        if (!pendingVenues.length) {
+                            announce("Add at least one conference, then click Apply subgraph.");
+                            return;
+                        }
+                        activeVenueSeeds = pendingVenues.slice();
+                        userAcceptedFullGraph = false;
+                        pushGraphURL();
+                        try {
+                            var sel = document.getElementById("graphYearSelect");
+                            var parsed = JSON.parse(sel.value);
+                            syncGraphView(parsed);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                        announce("Subgraph applied.");
+                    });
+                }
+                if (clearBtn) {
+                    clearBtn.addEventListener("click", function () {
+                        pendingVenues = [];
+                        activeVenueSeeds = [];
+                        userAcceptedFullGraph = false;
+                        overlayDismissedForFilters = false;
+                        pushGraphURL();
+                        renderVenueChips();
+                        if (overlay) {
+                            overlay.hidden = false;
+                            var ok = document.getElementById("graphProceedOk");
+                            if (ok) ok.focus();
+                        }
+                        try {
+                            var sel = document.getElementById("graphYearSelect");
+                            syncGraphView(JSON.parse(sel.value));
+                        } catch (e) {
+                            console.error(e);
+                        }
+                        updateProceedChrome();
+                        announce("Cleared venues. Use on-page filters or proceed to the full graph.");
+                    });
+                }
+                var inlineProceed = document.getElementById("graphProceedInline");
+                if (inlineProceed) {
+                    inlineProceed.addEventListener("click", function () {
+                        acceptFullGraphAndSync();
+                    });
+                }
             }
 
             function startGraph() {
                 loadConfig(function (config) {
-                var datasets = config.datasets || [];
-                var defaultYear = config.defaultYear != null ? String(config.defaultYear) : null;
-                var yearFromUrl = qs.get("year");
-                var sel = document.getElementById("graphYearSelect");
-                sel.innerHTML = "";
-                datasets.forEach(function (d) {
-                    if (!d.graph) return;
-                    var opt = document.createElement("option");
-                    opt.dataset.year = String(d.year);
-                    opt.value = JSON.stringify({
-                        graph: d.graph,
-                        summary: d.graphSummary || "",
-                        graphEdges: d.graphEdges || "",
-                        year: d.year
+                    var datasets = config.datasets || [];
+                    var defaultYear = config.defaultYear != null ? String(config.defaultYear) : null;
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var yearFromUrl = urlParams.get("year");
+                    var sel = document.getElementById("graphYearSelect");
+                    sel.innerHTML = "";
+                    datasets.forEach(function (d) {
+                        if (!d.graph) return;
+                        var opt = document.createElement("option");
+                        opt.dataset.year = String(d.year);
+                        opt.value = JSON.stringify({
+                            graph: d.graph,
+                            summary: d.graphSummary || "",
+                            graphEdges: d.graphEdges || "",
+                            year: d.year,
+                            sindex: d.sindex || d.path || ""
+                        });
+                        opt.textContent = d.year;
+                        if (String(d.year) === defaultYear) opt.selected = true;
+                        sel.appendChild(opt);
                     });
-                    opt.textContent = d.year;
-                    if (String(d.year) === defaultYear) opt.selected = true;
-                    sel.appendChild(opt);
-                });
-                if (!sel.options.length) {
-                    sel.innerHTML = '<option value="">No graphs configured</option>';
-                    announce("No graph files configured.");
-                    return;
-                }
+                    if (!sel.options.length) {
+                        sel.innerHTML = '<option value="">No graphs configured</option>';
+                        announce("No graph files configured.");
+                        graphBootFinished = true;
+                        var addB2 = document.getElementById("graphVenueAdd");
+                        var applyB2 = document.getElementById("graphApplyFilter");
+                        if (addB2) addB2.removeAttribute("disabled");
+                        if (applyB2) applyB2.removeAttribute("disabled");
+                        updateProceedChrome();
+                        return;
+                    }
 
-                if (yearFromUrl) {
-                    for (var i = 0; i < sel.options.length; i++) {
-                        if (sel.options[i].dataset.year === String(yearFromUrl)) {
-                            sel.selectedIndex = i;
-                            break;
+                    if (yearFromUrl) {
+                        for (var i = 0; i < sel.options.length; i++) {
+                            if (sel.options[i].dataset.year === String(yearFromUrl)) {
+                                sel.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    } else if (!sel.value) {
+                        sel.selectedIndex = 0;
+                    }
+
+                    function applyYearSelection() {
+                        try {
+                            var parsed = JSON.parse(sel.value);
+                            loadVenueListForCurrentYear(parsed).then(function () {
+                                syncGraphView(parsed);
+                            });
+                        } catch (e) {
+                            console.error(e);
                         }
                     }
-                } else if (!sel.value) {
-                    sel.selectedIndex = 0;
-                }
 
-                function applyYearSelection() {
-                    try {
-                        var parsed = JSON.parse(sel.value);
-                        syncGraphView(parsed);
-                    } catch (e) {
-                        console.error(e);
+                    applyYearSelection();
+                    renderVenueChips();
+
+                    if (!graphListenersWired) {
+                        graphListenersWired = true;
+                        sel.addEventListener("change", function () {
+                            if (!sel.value) return;
+                            try {
+                                var parsed = JSON.parse(sel.value);
+                                loadVenueListForCurrentYear(parsed).then(function () {
+                                    syncGraphView(parsed);
+                                });
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        });
+
+                        var obs = new MutationObserver(function () {
+                            if (!currentParsed) return;
+                            var now = resolvedTheme();
+                            if (now === lastResolvedTheme) return;
+                            lastResolvedTheme = now;
+                            syncGraphView(currentParsed);
+                        });
+                        obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
                     }
-                }
 
-                applyYearSelection();
-
-                sel.addEventListener("change", function () {
-                    if (!sel.value) return;
-                    try {
-                        var parsed = JSON.parse(sel.value);
-                        syncGraphView(parsed);
-                    } catch (e) {
-                        console.error(e);
+                    if (userAcceptedFullGraph && (!activeVenueSeeds || !activeVenueSeeds.length)) {
+                        pushGraphURL();
                     }
-                });
-
-                // Re-render when theme changes (theme.js updates html[data-theme] and classes)
-                var obs = new MutationObserver(function () {
-                    if (!currentParsed) return;
-                    var now = resolvedTheme();
-                    if (now === lastResolvedTheme) return;
-                    lastResolvedTheme = now;
-                    syncGraphView(currentParsed);
-                });
-                obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
-
+                    graphBootFinished = true;
+                    var addB = document.getElementById("graphVenueAdd");
+                    var applyB = document.getElementById("graphApplyFilter");
+                    if (addB) addB.removeAttribute("disabled");
+                    if (applyB) applyB.removeAttribute("disabled");
+                    updateProceedChrome();
                 });
             }
 
-            // Guard: opening Graph without a venue filter can be heavy and messy.
-            if ((!filteredSeedsFromUrl || filteredSeedsFromUrl.length === 0) && qs.get("proceed") !== "1") {
+            initVenueCatalogEarly().then(function () {
+                renderVenueChips();
+            });
+            wireGraphFilterUI();
+
+            if (overlay && !overlay.dataset.proceedDelegated) {
+                overlay.dataset.proceedDelegated = "1";
+                overlay.addEventListener("click", function (ev) {
+                    var t = ev.target;
+                    if (!t) return;
+                    if (t.id === "graphProceedOk") {
+                        acceptFullGraphAndSync();
+                        return;
+                    }
+                    if (t.id === "graphProceedUseFilters") {
+                        overlay.hidden = true;
+                        overlayDismissedForFilters = true;
+                        updateProceedChrome();
+                        var inpFocus = document.getElementById("graphVenueInput");
+                        if (inpFocus) {
+                            inpFocus.scrollIntoView({ behavior: "smooth", block: "center" });
+                            inpFocus.focus();
+                        }
+                        announce(
+                            "Add conferences under Focus on venues, then Apply subgraph. Use Proceed to full graph if you still want the entire network."
+                        );
+                    }
+                });
+            }
+
+            startGraph();
+
+            if ((!activeVenueSeeds || activeVenueSeeds.length === 0) && !userAcceptedFullGraph) {
                 if (overlay) {
                     overlay.hidden = false;
                     var ok = document.getElementById("graphProceedOk");
-                    if (ok) {
-                        ok.focus();
-                        ok.addEventListener("click", function () {
-                            qs.set("proceed", "1");
-                            history.replaceState(null, "", "graph.html?" + qs.toString());
-                            overlay.hidden = true;
-                            startGraph();
-                        });
-                    }
-                } else {
-                    startGraph();
+                    if (ok) ok.focus();
                 }
-            } else {
-                startGraph();
+            } else if (overlay) {
+                overlay.hidden = true;
             }
 
             var menuBtn = document.querySelector(".menu-btn");

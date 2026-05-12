@@ -18,7 +18,7 @@
         },
         {
             title: "Graph",
-            body: "Explore co-authorship overlap as an interactive network. A text summary of each year’s graph is on the Graph page for screen readers."
+            body: "Explore co-authorship overlap as an interactive network. On the Graph page you can use Focus on venues to build a subgraph without leaving the page. A text summary of each year’s graph is available for screen readers."
         },
         {
             title: "Adjacency Matrix",

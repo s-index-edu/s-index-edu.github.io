@@ -721,6 +721,64 @@ body {
     flex: 1;
 }
 
+.graph-filter-panel {
+    margin: var(--space-md) var(--space-lg) var(--space-lg);
+}
+
+.graph-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.graph-filter-row .search-input {
+    flex: 1;
+    min-width: 200px;
+    max-width: 420px;
+}
+
+.graph-venue-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    min-height: var(--space-lg);
+}
+
+.graph-venue-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-muted);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 13px;
+}
+
+.graph-venue-chip button {
+    font: inherit;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0 var(--space-xs);
+    line-height: 1;
+}
+
+.graph-venue-chip button:hover {
+    color: var(--color-accent);
+}
+
+.graph-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
 .graph-frame-wrap {
     flex: 1;
     position: relative;
@@ -1343,6 +1401,11 @@ body {
     align-items: center;
     justify-content: center;
     padding: var(--space-lg);
+}
+
+/* [hidden] must win over display:flex (otherwise overlays never hide) */
+.tour-overlay[hidden] {
+    display: none !important;
 }
 
 html.theme-light .tour-overlay {
