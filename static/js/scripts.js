@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const neighbourCount = rows.filter(c => !seedSet.has(c.booktitle)).length;
             const neighbourHint =
                 neighbourCount > 0
-                    ? `<p class="hint results-neighbour-hint">Including ${neighbourCount} conference(s) that share a co-authorship graph edge with your selection. Neighbour series use a dashed line in the chart.</p>`
+                    ? `<p class="hint results-neighbour-hint">Including ${neighbourCount} conference(s) that share a co-authorship graph edge with your selection. In the chart, neighbour lines start hidden—click the legend label to show or hide each series (neighbours use a dashed line).</p>`
                     : "";
 
             const networkBtn = `<div class="results-network-actions"><a class="btn btn-primary" href="${escapeHtml(buildFilteredGraphHref())}">Open network graph (selection + neighbours)</a></div>`;
@@ -449,7 +449,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         borderColor: getColor(Math.max(0, colorIdx)),
                         borderDash: isSeed ? undefined : [6, 4],
                         backgroundColor: "transparent",
-                        tension: 0.2
+                        tension: 0.2,
+                        hidden: !isSeed
                     };
                 });
                 const labels = range(min, max);

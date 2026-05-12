@@ -14,7 +14,7 @@
         {
             title: "Search",
             // Deep link example for maintainers: index.html?venue=CHI&year=2025
-            body: "Pick a data year and select venues. The default chart adds first-degree neighbours from the co-authorship graph (dashed lines). Use Open network graph to see the subgraph on the Graph page."
+            body: "Pick a data year and select venues. First-degree graph neighbours are included in the table and chart legend; in the chart, click a legend label to show or hide each line (neighbours use dashed lines). Use Open network graph to see the subgraph on the Graph page."
         },
         {
             title: "Graph",
