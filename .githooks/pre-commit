@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Enforce anonymous commit identity for this repository.
+set -euo pipefail
+
+REQUIRED_NAME="Anon"
+REQUIRED_EMAIL="anon@users.noreply.github.com"
+
+# Prefer commit-time env overrides; fall back to config (local then global).
+author_name="${GIT_AUTHOR_NAME:-$(git config --get user.name || true)}"
+author_email="${GIT_AUTHOR_EMAIL:-$(git config --get user.email || true)}"
+committer_name="${GIT_COMMITTER_NAME:-$(git config --get user.name || true)}"
+committer_email="${GIT_COMMITTER_EMAIL:-$(git config --get user.email || true)}"
+
+fail=0
+if [[ "$author_name" != "$REQUIRED_NAME" || "$author_email" != "$REQUIRED_EMAIL" ]]; then
+  echo "pre-commit: author must be ${REQUIRED_NAME} <${REQUIRED_EMAIL}>" >&2
+  echo "  got author: ${author_name:-<(empty)>} <${author_email:-<(empty)>}>" >&2
+  fail=1
+fi
+if [[ "$committer_name" != "$REQUIRED_NAME" || "$committer_email" != "$REQUIRED_EMAIL" ]]; then
+  echo "pre-commit: committer must be ${REQUIRED_NAME} <${REQUIRED_EMAIL}>" >&2
+  echo "  got committer: ${committer_name:-<(empty)>} <${committer_email:-<(empty)>}>" >&2
+  fail=1
+fi
+
+if [[ "$fail" -ne 0 ]]; then
+  echo "Set local identity with:" >&2
+  echo "  git config --local user.name \"${REQUIRED_NAME}\"" >&2
+  echo "  git config --local user.email \"${REQUIRED_EMAIL}\"" >&2
+  exit 1
+fi
+
+exit 0

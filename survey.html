@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey — S-Index</title>
+    <title>Survey - S-Index</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -40,7 +40,7 @@
         <section class="panel" aria-labelledby="surveyCounterHeading">
             <h2 id="surveyCounterHeading" class="panel-title">Survey instrument status</h2>
             <p id="surveyCounterText" class="hint">Loading survey metadata…</p>
-            <p class="hint">The formative cohort summarized in the report below is a fixed snapshot (N=<span id="surveySnapshotN">—</span>). Total responses recorded: <strong id="surveyTotalN">—</strong> (last updated <span id="surveyUpdated">—</span>).</p>
+            <p class="hint">The formative cohort summarized in the report below is a fixed snapshot (N=<span id="surveySnapshotN">-</span>). Total responses recorded: <strong id="surveyTotalN">-</strong> (last updated <span id="surveyUpdated">-</span>).</p>
             <!-- Maintainer: update static/config/survey-meta.json when survey counts change. -->
         </section>
         <section class="panel survey-form-wrap" aria-label="Survey form">
@@ -58,7 +58,9 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
+            <p>S-Index - Conference publication metrics.</p>
+            <p class="footer-paper">This site is based on the S-Index described in <a href="https://ieeexplore.ieee.org/abstract/document/10917437" target="_blank" rel="noopener">A New Index for Computer Science Conferences and Its Applications: The S-Index</a> (IEEE ICDMW 2024).</p>
+            <p class="footer-note">License: <a href="LICENSE">CC BY-NC 4.0</a> </p>
         </div>
     </footer>
 
@@ -90,9 +92,9 @@
                     var snap = document.getElementById("surveySnapshotN");
                     var total = document.getElementById("surveyTotalN");
                     var upd = document.getElementById("surveyUpdated");
-                    if (snap) snap.textContent = meta.snapshotCohortN != null ? String(meta.snapshotCohortN) : "—";
-                    if (total) total.textContent = meta.totalResponsesReported != null ? String(meta.totalResponsesReported) : "—";
-                    if (upd) upd.textContent = meta.lastUpdated || "—";
+                    if (snap) snap.textContent = meta.snapshotCohortN != null ? String(meta.snapshotCohortN) : "-";
+                    if (total) total.textContent = meta.totalResponsesReported != null ? String(meta.totalResponsesReported) : "-";
+                    if (upd) upd.textContent = meta.lastUpdated || "-";
                     var t = document.getElementById("surveyCounterText");
                     if (t) t.textContent = meta.note || "";
                     announce("Survey metadata loaded.");

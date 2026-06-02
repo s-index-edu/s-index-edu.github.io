@@ -1,6 +1,11 @@
 # S-Index website
 
-Web service for conference publication metrics (search, force-directed graphs, adjacency matrix views, survey, and optional statistics). This work is based on the S-Index described in the IEEE ICDMW 2024 paper (https://ieeexplore.ieee.org/abstract/document/10917437); it does not claim authorship of that paper.
+Web service for conference publication metrics (search, force-directed graphs, adjacency matrix views, survey, and optional statistics). This work is based on the S-Index described in the IEEE ICDMW 2024 paper cited below; it does not claim authorship of that paper.
+
+## Reference
+
+**A New Index for Computer Science Conferences and Its Applications: The S-Index** (*2024 IEEE International Conference on Data Mining Workshops (ICDMW)*).  
+[IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10917437)
 
 ## Quick start (local preview)
 
@@ -13,6 +18,16 @@ python3 -m http.server 8000
 Open `http://localhost:8000/index.html`. Any static file server works (`npx serve .`, etc.).
 
 **Theme:** `static/js/theme.js` applies `html.theme-light` / `html.theme-dark` and `data-theme` for charts.
+
+## Git identity (this repository)
+
+Commits must use `Anon <anon@users.noreply.github.com>`. Enable the project hooks once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Hooks reject non-Anon author/committer identity and strip or block `Co-authored-by: Cursor` trailers.
 
 ## Repository layout
 
@@ -30,6 +45,7 @@ Open `http://localhost:8000/index.html`. Any static file server works (`npx serv
 | `graph-2023.html`, … | Pre-generated vis.js network graphs (do not hand-edit; regenerate from pipeline) |
 | `pages/*.md` | Markdown content (matrix tables, survey text) |
 | `static/css/styles.css` | All site styles and design tokens |
+| `.githooks/` | Local git hooks (Anon identity + no Cursor co-author) |
 
 ## Adding a new data year
 
@@ -54,3 +70,6 @@ A competent reader with DBLP access, the referenced paper's method description, 
 
 Push to `main` (or `gh-pages`) on a GitHub repository with **Pages** enabled and source set to the branch root. Pages serves files as-is; no Jekyll required unless you add a `_config.yml`.
 
+## License
+
+This repository is licensed **CC BY-NC 4.0** (attribution required; **no commercial use**). See `LICENSE`.

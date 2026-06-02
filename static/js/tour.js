@@ -18,7 +18,7 @@
         },
         {
             title: "Graph",
-            body: "Explore co-authorship overlap as an interactive network. On the Graph page you can use Focus on venues to build a subgraph without leaving the page. A text summary of each year’s graph is available for screen readers."
+            body: "Explore co-authorship overlap as an interactive network. Add venues under Focus on venues, then click Render graph (the full network loads only after you confirm). A text summary of each year’s graph is available for screen readers."
         },
         {
             title: "Adjacency Matrix",
@@ -26,7 +26,8 @@
         },
         {
             title: "Survey",
-            body: "Read the formative cohort report. During anonymized review the live form is not embedded; response totals are read from a small JSON config file you can update when exports change."
+            // Maintainer: update static/config/survey-meta.json when exports change.
+            body: "Read the formative cohort report, fill out the embedded survey, and see response totals in the status panel."
         },
         {
             title: "Statistics",

@@ -1,5 +1,5 @@
 /**
- * S-Index Search — loads dataset from config (static/config/datasets.json).
+ * S-Index Search - loads dataset from config (static/config/datasets.json).
  * To add a new year: add a new entry to datasets.json and put the JSON file
  * in static/dataset/ (e.g. s-indices2024.json).
  */
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
         panel.hidden = false;
         const parts = years.map((y, i) => {
             const v = values[i];
-            return v == null || Number.isNaN(v) ? `${y}: —` : `${y}: ${v}`;
+            return v == null || Number.isNaN(v) ? `${y}: -` : `${y}: ${v}`;
         });
         hint.textContent = `Non-distinct S-Index for ${book}: ${parts.join(", ")}.`;
 
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const neighbourCount = rows.filter(c => !seedSet.has(c.booktitle)).length;
             const neighbourHint =
                 neighbourCount > 0
-                    ? `<p class="hint results-neighbour-hint">Including ${neighbourCount} conference(s) that share a co-authorship graph edge with your selection. In the chart, neighbour lines start hidden—click the legend label to show or hide each series (neighbours use a dashed line).</p>`
+                    ? `<p class="hint results-neighbour-hint">Including ${neighbourCount} conference(s) that share a co-authorship graph edge with your selection. In the chart, neighbour lines start hidden; click the legend label to show or hide each series (neighbours use a dashed line).</p>`
                     : "";
 
             const networkBtn = `<div class="results-network-actions"><a class="btn btn-primary" href="${escapeHtml(buildFilteredGraphHref())}">Open network graph (selection + neighbours)</a></div>`;

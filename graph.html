@@ -39,7 +39,7 @@
         <div id="graphProceedOverlay" class="tour-overlay" role="dialog" aria-modal="true" aria-labelledby="graphProceedTitle" hidden>
             <div class="panel tour-dialog">
                 <h2 id="graphProceedTitle" class="tour-step-title">Full graph warning</h2>
-                <p class="tour-step-body">You opened the Graph page without a venue filter. Loading the full network can take time and use a lot of memory, and the graph is very dense. Use <strong>Focus on venues</strong> on this page to add conferences and click <strong>Apply subgraph</strong>, or choose <strong>Proceed anyway</strong> to load everything.</p>
+                <p class="tour-step-body">You asked to render the graph without selecting any venues. Loading the full network can take time and use a lot of memory, and the graph is very dense. Add conferences under <strong>Focus on venues</strong> and click <strong>Render graph</strong> for a subgraph, or choose <strong>Proceed anyway</strong> to load everything.</p>
                 <div class="tour-actions">
                     <button type="button" class="btn" id="graphProceedUseFilters">Use on-page filters</button>
                     <button type="button" class="btn btn-primary" id="graphProceedOk">Proceed anyway</button>
@@ -53,11 +53,11 @@
                     <option value="">Loading…</option>
                 </select>
             </div>
-            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Use <strong>Focus on venues</strong> below to show a subgraph, or proceed to the full graph when offered.</p>
+            <p class="graph-hint">Nodes represent conferences. Edges connect conferences that share frequent authors. Add venues below, then click <strong>Render graph</strong>. Rendering without venues loads the full network after a confirmation step.</p>
         </div>
         <section class="panel graph-filter-panel" aria-labelledby="graphFilterTitle">
             <h2 id="graphFilterTitle" class="panel-title">Focus on venues</h2>
-            <p class="hint">Add conferences by name (must match the dataset). <strong>Apply subgraph</strong> shows each venue plus its first-degree neighbours.</p>
+            <p class="hint">Add conferences by name (must match the dataset). <strong>Render graph</strong> shows each selected venue plus its first-degree neighbours.</p>
             <div class="graph-filter-row">
                 <div>
                     <label for="graphVenueInput" class="toolbar-label">Conference name</label>
@@ -68,9 +68,8 @@
             </div>
             <div id="graphVenueChips" class="graph-venue-chips" aria-live="polite"></div>
             <div class="graph-filter-actions">
-                <button type="button" class="btn btn-primary" id="graphApplyFilter" disabled>Apply subgraph</button>
+                <button type="button" class="btn btn-primary" id="graphApplyFilter" disabled>Render graph</button>
                 <button type="button" class="btn" id="graphClearVenues">Clear venues</button>
-                <button type="button" class="btn" id="graphProceedInline" hidden>Proceed to full graph…</button>
             </div>
         </section>
         <section id="graphSummaryPanel" class="panel graph-summary-panel" hidden aria-labelledby="graphSummaryHeading">
@@ -95,7 +94,9 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
+            <p>S-Index - Conference publication metrics.</p>
+            <p class="footer-paper">This site is based on the S-Index described in <a href="https://ieeexplore.ieee.org/abstract/document/10917437" target="_blank" rel="noopener">A New Index for Computer Science Conferences and Its Applications: The S-Index</a> (IEEE ICDMW 2024).</p>
+            <p class="footer-note">License: <a href="LICENSE">CC BY-NC 4.0</a> </p>
         </div>
     </footer>
 
@@ -149,7 +150,6 @@
             var filterUiWired = false;
             var graphListenersWired = false;
             var graphBootFinished = false;
-            var overlayDismissedForFilters = false;
 
             function announce(msg) {
                 if (live) live.textContent = msg;
@@ -261,7 +261,7 @@
                             var li = document.createElement("li");
                             li.textContent =
                                 (e.from || "") +
-                                " — " +
+                                " - " +
                                 (e.to || "") +
                                 " (weight " +
                                 (e.weight != null ? e.weight : "?") +
@@ -425,21 +425,18 @@
                     });
             }
 
-            function updateProceedChrome() {
-                var inline = document.getElementById("graphProceedInline");
-                if (!inline) return;
-                var show =
-                    graphBootFinished &&
-                    (!activeVenueSeeds || !activeVenueSeeds.length) &&
-                    !userAcceptedFullGraph &&
-                    overlayDismissedForFilters;
-                if (show) inline.removeAttribute("hidden");
-                else inline.setAttribute("hidden", "");
+            function showFullGraphWarning() {
+                if (!overlay) {
+                    acceptFullGraphAndSync();
+                    return;
+                }
+                overlay.hidden = false;
+                var ok = document.getElementById("graphProceedOk");
+                if (ok) ok.focus();
             }
 
             function acceptFullGraphAndSync() {
                 userAcceptedFullGraph = true;
-                overlayDismissedForFilters = false;
                 if (overlay) overlay.hidden = true;
                 pushGraphURL();
                 if (currentParsed) {
@@ -463,9 +460,8 @@
                     if (fw) fw.hidden = true;
                     if (panel) panel.hidden = true;
                     announce(
-                        "Tip: add conferences under Focus on venues, then Apply subgraph. Or use Proceed to full graph to load the entire network."
+                        "Add conferences under Focus on venues, then click Render graph. Rendering with no venues loads the full network after a confirmation."
                     );
-                    updateProceedChrome();
                     return;
                 }
                 if (activeVenueSeeds && activeVenueSeeds.length) {
@@ -477,7 +473,6 @@
                         setIframeGraph(parsed.graph, parsed.graphSummary || "");
                     }
                 }
-                updateProceedChrome();
             }
 
             function escapeHtml(s) {
@@ -646,7 +641,7 @@
                             return;
                         }
                         if (!pendingVenues.length) {
-                            announce("Add at least one conference, then click Apply subgraph.");
+                            showFullGraphWarning();
                             return;
                         }
                         activeVenueSeeds = pendingVenues.slice();
@@ -659,7 +654,7 @@
                         } catch (e) {
                             console.error(e);
                         }
-                        announce("Subgraph applied.");
+                        announce("Subgraph rendered.");
                     });
                 }
                 if (clearBtn) {
@@ -667,28 +662,16 @@
                         pendingVenues = [];
                         activeVenueSeeds = [];
                         userAcceptedFullGraph = false;
-                        overlayDismissedForFilters = false;
+                        if (overlay) overlay.hidden = true;
                         pushGraphURL();
                         renderVenueChips();
-                        if (overlay) {
-                            overlay.hidden = false;
-                            var ok = document.getElementById("graphProceedOk");
-                            if (ok) ok.focus();
-                        }
                         try {
                             var sel = document.getElementById("graphYearSelect");
                             syncGraphView(JSON.parse(sel.value));
                         } catch (e) {
                             console.error(e);
                         }
-                        updateProceedChrome();
-                        announce("Cleared venues. Use on-page filters or proceed to the full graph.");
-                    });
-                }
-                var inlineProceed = document.getElementById("graphProceedInline");
-                if (inlineProceed) {
-                    inlineProceed.addEventListener("click", function () {
-                        acceptFullGraphAndSync();
+                        announce("Cleared venues. Add conferences and click Render graph, or render with no venues to load the full network.");
                     });
                 }
             }
@@ -724,7 +707,6 @@
                         var applyB2 = document.getElementById("graphApplyFilter");
                         if (addB2) addB2.removeAttribute("disabled");
                         if (applyB2) applyB2.removeAttribute("disabled");
-                        updateProceedChrome();
                         return;
                     }
 
@@ -785,7 +767,6 @@
                     var applyB = document.getElementById("graphApplyFilter");
                     if (addB) addB.removeAttribute("disabled");
                     if (applyB) applyB.removeAttribute("disabled");
-                    updateProceedChrome();
                 });
             }
 
@@ -805,15 +786,13 @@
                     }
                     if (t.id === "graphProceedUseFilters") {
                         overlay.hidden = true;
-                        overlayDismissedForFilters = true;
-                        updateProceedChrome();
                         var inpFocus = document.getElementById("graphVenueInput");
                         if (inpFocus) {
                             inpFocus.scrollIntoView({ behavior: "smooth", block: "center" });
                             inpFocus.focus();
                         }
                         announce(
-                            "Add conferences under Focus on venues, then Apply subgraph. Use Proceed to full graph if you still want the entire network."
+                            "Add conferences under Focus on venues, then click Render graph. You can render with no venues to load the full network after confirming."
                         );
                     }
                 });
@@ -821,15 +800,7 @@
 
             startGraph();
 
-            if ((!activeVenueSeeds || activeVenueSeeds.length === 0) && !userAcceptedFullGraph) {
-                if (overlay) {
-                    overlay.hidden = false;
-                    var ok = document.getElementById("graphProceedOk");
-                    if (ok) ok.focus();
-                }
-            } else if (overlay) {
-                overlay.hidden = true;
-            }
+            if (overlay) overlay.hidden = true;
 
             var menuBtn = document.querySelector(".menu-btn");
             var nav = document.querySelector(".nav");

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Strip Cursor co-author trailers that tools may inject into the commit message.
+set -euo pipefail
+
+MSG_FILE="${1:-}"
+[[ -n "$MSG_FILE" && -f "$MSG_FILE" ]] || exit 0
+
+# Remove Cursor co-author lines (any surrounding blank-line cleanup left to commit-msg).
+tmp="$(mktemp)"
+sed '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' "$MSG_FILE" > "$tmp"
+mv "$tmp" "$MSG_FILE"
+
+exit 0

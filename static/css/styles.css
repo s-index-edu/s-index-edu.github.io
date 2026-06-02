@@ -1,5 +1,5 @@
 /* ==========================================================================
-   S-Index — Design system (GitHub Pages compatible, static assets only)
+   S-Index - Design system (GitHub Pages compatible, static assets only)
    Follows system theme: light/dark via prefers-color-scheme
    ========================================================================== */
 
@@ -266,6 +266,16 @@ body {
     max-width: 520px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.hero-desc a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.hero-desc a:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
 }
 
 .search-row {
@@ -601,6 +611,10 @@ body {
 
 .site-footer a:hover {
     text-decoration: underline;
+}
+
+.footer-inner p + p {
+    margin-top: var(--space-sm);
 }
 
 /* --------------------------------------------------------------------------

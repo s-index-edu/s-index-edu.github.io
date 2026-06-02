@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adjacency Matrix — S-Index</title>
+    <title>Adjacency Matrix - S-Index</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -50,7 +50,7 @@
 
         <section class="panel matrix-metrics-panel" aria-labelledby="metricsHeading">
             <h2 id="metricsHeading" class="panel-title">Venue metrics (S-Index and h5-index)</h2>
-            <p class="hint">Sort by column header. h5-index values are taken from Google Scholar Metrics top-venue lists where available; venues outside those lists show an em dash.</p>
+            <p class="hint">Sort by column header. h5-index values are taken from Google Scholar Metrics top-venue lists where available; venues outside those lists show a hyphen.</p>
             <div class="matrix-metrics-table-wrap results-table-wrap">
                 <table class="results-table matrix-metrics-table" id="metricsTable">
                     <thead>
@@ -70,7 +70,9 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <p>S-Index — Conference publication metrics. <span class="footer-note">Public source links are omitted during anonymized review.</span></p>
+            <p>S-Index - Conference publication metrics.</p>
+            <p class="footer-paper">This site is based on the S-Index described in <a href="https://ieeexplore.ieee.org/abstract/document/10917437" target="_blank" rel="noopener">A New Index for Computer Science Conferences and Its Applications: The S-Index</a> (IEEE ICDMW 2024).</p>
+            <p class="footer-note">License: <a href="LICENSE">CC BY-NC 4.0</a> </p>
         </div>
     </footer>
 
@@ -150,8 +152,8 @@
                 });
                 tbody.innerHTML = rows
                     .map(function (r) {
-                        var h5cell = r.h5 == null ? "—" : String(r.h5);
-                        var scell = r.sindex == null ? "—" : String(r.sindex);
+                        var h5cell = r.h5 == null ? "-" : String(r.h5);
+                        var scell = r.sindex == null ? "-" : String(r.sindex);
                         return (
                             "<tr><td>" +
                             esc(r.booktitle) +
